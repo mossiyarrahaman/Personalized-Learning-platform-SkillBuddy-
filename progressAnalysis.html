@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Learning Analytics — Single File</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+  <!-- Lucide icons CDN -->
+  <script src="https://unpkg.com/lucide@0.253.0/dist/lucide.min.js"></script>
+  <!-- Lucide Icons CDN -->
+
+
+  <style>
+    /* Small helpers for consistent card look */
+    .card {
+      background: rgba(255,255,255,0.06);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Chart canvas containers keep height */
+    .chart-holder { height: 320px; }
+
+    /* small scrollbar for tables if needed */
+    .thin-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .thin-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold">Learning Analytics</h1>
+        <p class="text-white/70">Track your progress and optimize your learning journey</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="toggleAdvancedBtn" class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white hover:bg-white/15 transition-colors">
+          <span id="iconEye"><i data-lucide="Eye" class="w-4 h-4"></i></span>
+          <span id="iconEyeOff" class="hidden"><i data-lucide="EyeOff" class="w-4 h-4"></i></span>
+          <span id="toggleText">Show Advanced</span>
+        </button>
+
+        <button id="exportBtn" class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white hover:bg-white/15 transition-colors">
+          <i data-lucide="Download" class="w-4 h-4"></i>
+          Export Data
+        </button>
+
+        <button id="refreshBtn" class="text-white/70 hover:text-white transition-colors">
+          <i data-lucide="RefreshCw" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+            <i data-lucide="Clock" class="w-6 h-6 text-white"></i>
+          </div>
+          <div class="flex items-center gap-1 text-sm text-green-400">
+            <i data-lucide="ArrowUp" class="w-4 h-4"></i>
+            +12h this week
+          </div>
+        </div>
+        <div class="text-2xl font-bold mb-1">156h</div>
+        <div class="text-white/60 text-sm">Total Study Hours</div>
+      </div>
+
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+            <i data-lucide="BookOpen" class="w-6 h-6 text-white"></i>
+          </div>
+          <div class="flex items-center gap-1 text-sm text-green-400">
+            <i data-lucide="ArrowUp" class="w-4 h-4"></i>
+            +2 this month
+          </div>
+        </div>
+        <div class="text-2xl font-bold mb-1">7</div>
+        <div class="text-white/60 text-sm">Courses Completed</div>
+      </div>
+
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
+            <i data-lucide="Flame" class="w-6 h-6 text-white"></i>
+          </div>
+          <div class="flex items-center gap-1 text-sm text-green-400">
+            <i data-lucide="ArrowUp" class="w-4 h-4"></i>
+            Personal best!
+          </div>
+        </div>
+        <div class="text-2xl font-bold mb-1">12 days</div>
+        <div class="text-white/60 text-sm">Current Streak</div>
+      </div>
+
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+            <i data-lucide="Award" class="w-6 h-6 text-white"></i>
+          </div>
+          <div class="flex items-center gap-1 text-sm text-green-400">
+            <i data-lucide="ArrowUp" class="w-4 h-4"></i>
+            +5% improvement
+          </div>
+        </div>
+        <div class="text-2xl font-bold mb-1">87%</div>
+        <div class="text-white/60 text-sm">Average Score</div>
+      </div>
+    </div>
+
+    <!-- Main Charts -->
+    <div class="grid lg:grid-cols-2 gap-6 mb-8">
+      <!-- Study Time Trends -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-semibold">Study Time Trends</h3>
+          <div class="flex items-center gap-2">
+            <select id="periodSelect" class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm">
+              <option value="7d">Last 7 Days</option>
+              <option value="30d">Last 30 Days</option>
+              <option value="90d">Last 3 Months</option>
+              <option value="1y">Last Year</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-holder">
+          <canvas id="studyTimeChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Subject Performance -->
+      <div class="card p-6">
+        <h3 class="text-xl font-semibold mb-6">Subject Performance</h3>
+        <div class="chart-holder">
+          <canvas id="subjectPerformanceChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary Charts -->
+    <div class="grid lg:grid-cols-3 gap-6 mb-8">
+      <!-- Learning Style -->
+      <div class="card p-6">
+        <h3 class="text-xl font-semibold mb-6">Learning Style Analysis</h3>
+        <div class="h-80 flex items-center justify-center">
+          <canvas id="learningStyleChart" style="max-height:260px;"></canvas>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full" style="background:#06B6D4"></div>
+            <span class="text-white/70 text-sm">Visual Learning</span>
+            <span class="text-white font-medium text-sm ml-auto">35%</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full" style="background:#10B981"></div>
+            <span class="text-white/70 text-sm">Hands-on Practice</span>
+            <span class="text-white font-medium text-sm ml-auto">40%</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full" style="background:#F59E0B"></div>
+            <span class="text-white/70 text-sm">Reading/Theory</span>
+            <span class="text-white font-medium text-sm ml-auto">15%</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full" style="background:#8B5CF6"></div>
+            <span class="text-white/70 text-sm">Audio/Video</span>
+            <span class="text-white font-medium text-sm ml-auto">10%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak Visualization -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-semibold">Learning Streaks</h3>
+          <div class="flex items-center gap-2">
+            <i data-lucide="Flame" class="w-5 h-5 text-orange-400"></i>
+            <span class="text-white font-semibold">12 days</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-orange-400 mb-1">12</div>
+            <div class="text-white/60 text-sm">Current Streak</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-red-400 mb-1">28</div>
+            <div class="text-white/60 text-sm">Longest Streak</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-purple-400 mb-1">24</div>
+            <div class="text-white/60 text-sm">This Month</div>
+          </div>
+        </div>
+
+        <h4 class="text-white font-medium mb-3">Last 7 Days</h4>
+        <div class="flex gap-2">
+          <!-- weekly: [1,1,1,1,1,0,1] -->
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500"><i data-lucide="CheckCircle" class="w-4 h-4"></i></div>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500"><i data-lucide="CheckCircle" class="w-4 h-4"></i></div>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500"><i data-lucide="CheckCircle" class="w-4 h-4"></i></div>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500"><i data-lucide="CheckCircle" class="w-4 h-4"></i></div>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500"><i data-lucide="CheckCircle" class="w-4 h-4"></i></div>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/20"></div>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500"><i data-lucide="CheckCircle" class="w-4 h-4"></i></div>
+        </div>
+      </div>
+
+      <!-- Topic Mastery -->
+      <div class="card p-6">
+        <h3 class="text-xl font-semibold mb-6">Topic Mastery</h3>
+        <div class="space-y-4 thin-scroll" style="max-height:360px; overflow:auto;">
+          <!-- items populated with JS for flexibility -->
+          <div class="topic-item bg-white/5 rounded-lg p-4 border border-white/20">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="text-white font-medium">React Hooks</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="px-2 py-1 rounded-full text-xs bg-yellow-500/20 text-yellow-400">Intermediate</span>
+                  <span class="text-white/60 text-xs">12h spent</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xl font-bold text-white">85%</div>
+                <div class="text-white/60 text-sm">Mastery</div>
+              </div>
+            </div>
+            <div class="w-full bg-white/20 rounded-full h-2">
+              <div class="h-2 rounded-full bg-yellow-400" style="width:85%"></div>
+            </div>
+          </div>
+
+          <div class="topic-item bg-white/5 rounded-lg p-4 border border-white/20">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="text-white font-medium">State Management</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="px-2 py-1 rounded-full text-xs bg-red-500/20 text-red-400">Advanced</span>
+                  <span class="text-white/60 text-xs">8h spent</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xl font-bold text-white">72%</div>
+                <div class="text-white/60 text-sm">Mastery</div>
+              </div>
+            </div>
+            <div class="w-full bg-white/20 rounded-full h-2">
+              <div class="h-2 rounded-full bg-yellow-400" style="width:72%"></div>
+            </div>
+          </div>
+
+          <div class="topic-item bg-white/5 rounded-lg p-4 border border-white/20">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="text-white font-medium">Component Lifecycle</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="px-2 py-1 rounded-full text-xs bg-yellow-500/20 text-yellow-400">Intermediate</span>
+                  <span class="text-white/60 text-xs">15h spent</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xl font-bold text-white">94%</div>
+                <div class="text-white/60 text-sm">Mastery</div>
+              </div>
+            </div>
+            <div class="w-full bg-white/20 rounded-full h-2">
+              <div class="h-2 rounded-full bg-green-400" style="width:94%"></div>
+            </div>
+          </div>
+
+          <div class="topic-item bg-white/5 rounded-lg p-4 border border-white/20">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="text-white font-medium">API Integration</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="px-2 py-1 rounded-full text-xs bg-red-500/20 text-red-400">Advanced</span>
+                  <span class="text-white/60 text-xs">6h spent</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xl font-bold text-white">68%</div>
+                <div class="text-white/60 text-sm">Mastery</div>
+              </div>
+            </div>
+            <div class="w-full bg-white/20 rounded-full h-2">
+              <div class="h-2 rounded-full bg-red-400" style="width:68%"></div>
+            </div>
+          </div>
+
+          <div class="topic-item bg-white/5 rounded-lg p-4 border border-white/20">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="text-white font-medium">Routing</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="px-2 py-1 rounded-full text-xs bg-green-500/20 text-green-400">Beginner</span>
+                  <span class="text-white/60 text-xs">10h spent</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xl font-bold text-white">91%</div>
+                <div class="text-white/60 text-sm">Mastery</div>
+              </div>
+            </div>
+            <div class="w-full bg-white/20 rounded-full h-2">
+              <div class="h-2 rounded-full bg-green-400" style="width:91%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Metrics (toggle) -->
+    <div id="advancedSection" class="hidden mb-8">
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="card p-6">
+          <h3 class="text-xl font-semibold mb-6">Learning Velocity Trend</h3>
+          <div class="chart-holder">
+            <canvas id="learningVelocityChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card p-6">
+          <h3 class="text-xl font-semibold mb-6">Goal vs Achievement</h3>
+          <div class="chart-holder">
+            <canvas id="goalAchievementChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insights and Recommendations -->
+    <div class="card p-6">
+      <h3 class="text-xl font-semibold mb-6">AI Insights & Recommendations</h3>
+      <div class="space-y-4">
+        <div class="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg p-4 border border-blue-400/30">
+          <div class="flex items-center gap-3 mb-2">
+            <i data-lucide="Brain" class="w-5 h-5 text-blue-400"></i>
+            <span class="text-blue-400 font-medium">Peak Performance</span>
+          </div>
+          <p class="text-white/80 text-sm">
+            You learn best between 9-11 AM with 92% completion rate. Consider scheduling complex topics during this time.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg p-4 border border-green-400/30">
+          <div class="flex items-center gap-3 mb-2">
+            <i data-lucide="Target" class="w-5 h-5 text-green-400"></i>
+            <span class="text-green-400 font-medium">Study Recommendation</span>
+          </div>
+          <p class="text-white/80 text-sm">
+            Focus on API Integration (68% mastery) to unlock advanced backend topics. Estimated 4-6 hours needed.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-4 border border-yellow-400/30">
+          <div class="flex items-center gap-3 mb-2">
+            <i data-lucide="AlertTriangle" class="w-5 h-5 text-yellow-400"></i>
+            <span class="text-yellow-400 font-medium">Learning Gap</span>
+          </div>
+          <p class="text-white/80 text-sm">
+            Your hands-on practice time decreased by 20% this week. Consider more coding exercises to maintain momentum.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg p-4 border border-purple-400/30">
+          <div class="flex items-center gap-3 mb-2">
+            <i data-lucide="Zap" class="w-5 h-5 text-purple-400"></i>
+            <span class="text-purple-400 font-medium">Efficiency Boost</span>
+          </div>
+          <p class="text-white/80 text-sm">
+            Taking 10-minute breaks every 45 minutes could improve retention by 15% based on your learning patterns.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script: Data + Chart rendering + Interactions -->
+  <script>
+    
+    // Replace lucide icons to SVGs
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.lucide) lucide.replace();
+    });
+
+    // --- Data (mirrors the React data you supplied) ---
+    const studyTimeBase = [
+      { date: 'Mon', hours: 2.5, sessions: 3, completion: 85 },
+      { date: 'Tue', hours: 3.2, sessions: 4, completion: 92 },
+      { date: 'Wed', hours: 1.8, sessions: 2, completion: 76 },
+      { date: 'Thu', hours: 4.1, sessions: 5, completion: 94 },
+      { date: 'Fri', hours: 2.7, sessions: 3, completion: 88 },
+      { date: 'Sat', hours: 3.5, sessions: 4, completion: 91 },
+      { date: 'Sun', hours: 2.9, sessions: 3, completion: 89 }
+    ];
+
+    const performanceData = [
+      { subject: 'React', score: 92, progress: 78, timeSpent: 45 },
+      { subject: 'Node.js', score: 85, progress: 65, timeSpent: 32 },
+      { subject: 'JavaScript', score: 96, progress: 95, timeSpent: 67 },
+      { subject: 'CSS', score: 88, progress: 82, timeSpent: 28 },
+      { subject: 'Database', score: 79, progress: 45, timeSpent: 23 }
+    ];
+
+    const learningStyleData = [
+      { name: 'Visual Learning', value: 35, color: '#06B6D4' },
+      { name: 'Hands-on Practice', value: 40, color: '#10B981' },
+      { name: 'Reading/Theory', value: 15, color: '#F59E0B' },
+      { name: 'Audio/Video', value: 10, color: '#8B5CF6' }
+    ];
+
+    const weeklyGoalData = [
+      { week: 'Week 1', target: 20, actual: 18, completion: 90 },
+      { week: 'Week 2', target: 20, actual: 22, completion: 110 },
+      { week: 'Week 3', target: 25, actual: 21, completion: 84 },
+      { week: 'Week 4', target: 25, actual: 28, completion: 112 }
+    ];
+
+    const learningVelocityData = [
+      { month: 'Jan', velocity: 85 },
+      { month: 'Feb', velocity: 92 },
+      { month: 'Mar', velocity: 88 },
+      { month: 'Apr', velocity: 95 },
+      { month: 'May', velocity: 89 },
+      { month: 'Jun', velocity: 97 }
+    ];
+
+    // Chart instances
+    let studyTimeChart = null;
+    let subjectPerformanceChart = null;
+    let learningStyleChart = null;
+    let learningVelocityChart = null;
+    let goalAchievementChart = null;
+
+    // Utility: generate study data for different periods (simple repeat / slight jitter)
+    function getStudyTimeData(period) {
+      if (period === '7d') return studyTimeBase.slice();
+      const result = [];
+      let days;
+      if (period === '30d') days = 30;
+      else if (period === '90d') days = 90;
+      else if (period === '1y') days = 365;
+      else days = 7;
+
+      // Repeat base pattern with small deterministic jitter
+      for (let i = 0; i < days; i++) {
+        const base = studyTimeBase[i % studyTimeBase.length].hours;
+        // deterministic jitter using i
+        const jitter = ((i * 13) % 7 - 3) * 0.08;
+        result.push({ date: `Day ${i+1}`, hours: Math.max(0.5, +(base + jitter).toFixed(2)) });
+      }
+      return result;
+    }
+
+    // Create Study Time (Area) chart
+    function drawStudyTimeChart(period = '7d') {
+      const data = getStudyTimeData(period);
+      const labels = data.map(d => d.date);
+      const values = data.map(d => d.hours);
+
+      const canvas = document.getElementById('studyTimeChart');
+      const ctx = canvas.getContext('2d');
+
+      // Destroy existing
+      if (studyTimeChart) studyTimeChart.destroy();
+
+      // gradient
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height || 300);
+      gradient.addColorStop(0, 'rgba(6,182,212,0.28)');
+      gradient.addColorStop(1, 'rgba(6,182,212,0)');
+
+      studyTimeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Hours',
+            data: values,
+            borderColor: '#06B6D4',
+            backgroundColor: gradient,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 3,
+            pointBackgroundColor: '#06B6D4',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } },
+            y: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              padding: 10,
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(255,255,255,0.12)',
+              borderWidth: 1,
+              cornerRadius: 8
+            }
+          }
+        }
+      });
+    }
+
+    // Subject Performance (horizontal bar)
+    function drawSubjectPerformance() {
+      const labels = performanceData.map(p => p.subject);
+      const values = performanceData.map(p => p.score);
+      const canvas = document.getElementById('subjectPerformanceChart');
+      const ctx = canvas.getContext('2d');
+      if (subjectPerformanceChart) subjectPerformanceChart.destroy();
+
+      subjectPerformanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Score',
+            data: values,
+            backgroundColor: '#10B981',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' }, beginAtZero: true },
+            y: { ticks: { color: '#9CA3AF' }, grid: { display: false } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(255,255,255,0.12)',
+              borderWidth: 1,
+              cornerRadius: 8
+            }
+          }
+        }
+      });
+    }
+
+    // Learning Style Pie
+    function drawLearningStyle() {
+      const labels = learningStyleData.map(d => d.name);
+      const values = learningStyleData.map(d => d.value);
+      const colors = learningStyleData.map(d => d.color);
+      const canvas = document.getElementById('learningStyleChart');
+      const ctx = canvas.getContext('2d');
+      if (learningStyleChart) learningStyleChart.destroy();
+
+      learningStyleChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#fff' } },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(255,255,255,0.12)',
+              borderWidth: 1,
+              cornerRadius: 8
+            }
+          }
+        }
+      });
+    }
+
+    // Learning Velocity (line)
+    function drawLearningVelocity() {
+      const labels = learningVelocityData.map(d => d.month);
+      const values = learningVelocityData.map(d => d.velocity);
+      const canvas = document.getElementById('learningVelocityChart');
+      const ctx = canvas.getContext('2d');
+      if (learningVelocityChart) learningVelocityChart.destroy();
+
+      learningVelocityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Velocity',
+            data: values,
+            borderColor: '#8B5CF6',
+            backgroundColor: 'rgba(139,92,246,0.12)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 4,
+            pointBackgroundColor: '#8B5CF6',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } },
+            y: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(255,255,255,0.12)',
+              borderWidth: 1,
+              cornerRadius: 8
+            }
+          }
+        }
+      });
+    }
+
+    // Goal vs Achievement grouped bar
+    function drawGoalAchievement() {
+      const labels = weeklyGoalData.map(w => w.week);
+      const target = weeklyGoalData.map(w => w.target);
+      const actual = weeklyGoalData.map(w => w.actual);
+      const canvas = document.getElementById('goalAchievementChart');
+      const ctx = canvas.getContext('2d');
+      if (goalAchievementChart) goalAchievementChart.destroy();
+
+      goalAchievementChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Target', data: target, backgroundColor: '#6B7280' },
+            { label: 'Actual', data: actual, backgroundColor: '#10B981' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } },
+            y: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' }, beginAtZero: true }
+          },
+          plugins: {
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(255,255,255,0.12)',
+              borderWidth: 1,
+              cornerRadius: 8
+            }
+          }
+        }
+      });
+    }
+
+    // Initial render
+    function renderAll(period = '7d') {
+      drawStudyTimeChart(period);
+      drawSubjectPerformance();
+      drawLearningStyle();
+      drawLearningVelocity();
+      drawGoalAchievement();
+    }
+
+    // DOM interactions
+    document.addEventListener('DOMContentLoaded', function () {
+      // ensure lucide icons are replaced after DOM ready
+      if (window.lucide) lucide.replace();
+
+      // initial draw
+      renderAll('7d');
+
+      // period selector
+      const periodSelect = document.getElementById('periodSelect');
+      periodSelect.addEventListener('change', (e) => {
+        drawStudyTimeChart(e.target.value);
+      });
+
+      // Toggle advanced metrics section
+      const toggleBtn = document.getElementById('toggleAdvancedBtn');
+      const advancedSection = document.getElementById('advancedSection');
+      const iconEye = document.getElementById('iconEye');
+      const iconEyeOff = document.getElementById('iconEyeOff');
+      const toggleText = document.getElementById('toggleText');
+
+      toggleBtn.addEventListener('click', () => {
+        const showing = !advancedSection.classList.contains('hidden');
+        if (showing) {
+          advancedSection.classList.add('hidden');
+          iconEye.classList.remove('hidden');
+          iconEyeOff.classList.add('hidden');
+          toggleText.textContent = 'Show Advanced';
+        } else {
+          advancedSection.classList.remove('hidden');
+          iconEye.classList.add('hidden');
+          iconEyeOff.classList.remove('hidden');
+          toggleText.textContent = 'Hide Advanced';
+          // draw advanced charts when revealed
+          drawLearningVelocity();
+          drawGoalAchievement();
+        }
+      });
+
+      // Export data (download JSON)
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const exportObject = {
+          studyTime: getStudyTimeData(periodSelect.value),
+          performance: performanceData,
+          learningStyle: learningStyleData,
+          weeklyGoals: weeklyGoalData,
+          learningVelocity: learningVelocityData
+        };
+        const blob = new Blob([JSON.stringify(exportObject, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'learning-analytics-data.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+
+      // Refresh button (re-renders charts)
+      document.getElementById('refreshBtn').addEventListener('click', () => {
+        // simulate data refresh by re-rendering charts
+        renderAll(periodSelect.value);
+      });
+
+      // Re-run lucide.replace after any dynamic DOM icon show/hide to ensure svg icons are in place
+      // (a light guard — lucide.replace() is idempotent)
+      document.addEventListener('click', () => { if (window.lucide) lucide.replace(); });
+    });
+  </script>
+</body>
+</html>

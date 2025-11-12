@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Field Selection Onboarding — LearnAI</title>
+
+  <!-- Tailwind CDN (prototype) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* small helpers */
+    .delay-1000 { animation-delay: 1s; }
+    .glass-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.08); }
+    .fade-in { animation: fadeIn .28s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    /* keyboard focus */
+    .focus-ring:focus { outline: 3px solid rgba(96,165,250,0.25); outline-offset: 3px; }
+    /* slightly bigger check overlay */
+    .check-badge { width: 1.5rem; height: 1.5rem; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white antialiased">
+
+  <!-- STICKY PROGRESS BAR -->
+  <header class="w-full bg-black/20 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between mb-2">
+        <span id="stepLabel" class="text-white/80 text-sm">Step 1 of 4</span>
+        <span id="pctLabel" class="text-white/80 text-sm">25% Complete</span>
+      </div>
+      <div class="w-full bg-white/20 rounded-full h-2">
+        <div id="progressFill" class="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full transition-all duration-300" style="width:25%"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="max-w-6xl mx-auto px-4 py-12">
+    <div id="onboardingContent" class="fade-in"></div>
+
+    <!-- navigation -->
+    <div class="flex justify-between items-center mt-10 max-w-6xl mx-auto px-4">
+      <button id="prevBtn" class="flex items-center gap-2 px-6 py-3 rounded-lg transition-all text-white/80 hover:bg-white/5 disabled:opacity-40" aria-disabled="true" disabled>
+        <span class="icon"><i data-lucide="arrow-left"></i></span>
+        Previous
+      </button>
+
+      <div id="stepActionWrap">
+        <!-- Next / Start button injected by JS per step -->
+      </div>
+    </div>
+  </main>
+
+  <!-- lucide mount + app script -->
+  <script>
+    // Initialize lucide icons when available
+    function mountIcons(){ try { if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') lucide.createIcons(); } catch(e){ console.warn('lucide init failed', e); } }
+
+    // --- App state ---
+    let currentStep = 1;
+    let selectedField = null;
+    let selectedLevel = null;
+    let userGoals = [];
+
+    // fields (converted icons as iconName strings for lucide)
+    const fields = [
+      { id:'programming', name:'Programming & Development', icon:'code', description:'Learn coding languages, web & mobile apps, software engineering', popularity:95, duration:'3-12 months', jobs:'2M+ jobs', gradient:'from-blue-500 to-cyan-500' },
+      { id:'design', name:'Graphic Design & UI/UX', icon:'palette', description:'Master visual design, user interfaces, branding, and creative tools', popularity:88, duration:'2-8 months', jobs:'800K+ jobs', gradient:'from-purple-500 to-pink-500' },
+      { id:'marketing', name:'Digital Marketing', icon:'trending-up', description:'Social media, SEO, content marketing, analytics, and growth strategies', popularity:92, duration:'1-6 months', jobs:'1.5M+ jobs', gradient:'from-green-500 to-emerald-500' },
+      { id:'languages', name:'Languages & Communication', icon:'languages', description:'Learn new languages, improve communication skills, and cultural understanding', popularity:85, duration:'6-24 months', jobs:'500K+ jobs', gradient:'from-orange-500 to-red-500' },
+      { id:'data-science', name:'Data Science & Analytics', icon:'calculator', description:'Statistics, machine learning, data visualization, and BI', popularity:89, duration:'4-15 months', jobs:'1.2M+ jobs', gradient:'from-indigo-500 to-purple-500' },
+      { id:'music', name:'Music & Audio Production', icon:'music', description:'Music theory, instrument learning, audio engineering, composition', popularity:75, duration:'3-18 months', jobs:'300K+ jobs', gradient:'from-yellow-500 to-orange-500' },
+      { id:'photography', name:'Photography & Videography', icon:'camera', description:'Photo editing, video production, storytelling, and technical skills', popularity:82, duration:'2-10 months', jobs:'400K+ jobs', gradient:'from-teal-500 to-blue-500' },
+      { id:'trades', name:'Skilled Trades & Crafts', icon:'wrench', description:'Hands-on skills, technical trades, craftsmanship, and practical knowledge', popularity:78, duration:'3-24 months', jobs:'900K+ jobs', gradient:'from-gray-500 to-slate-600' }
+    ];
+
+    const levels = [
+      { id:'beginner', name:'Beginner', description:'New to this field, looking to learn the basics', icon:'🌱', features:['Fundamentals','Step-by-step guidance','Basic projects','Community support'] },
+      { id:'intermediate', name:'Intermediate', description:'Some experience, ready to deepen knowledge', icon:'🚀', features:['Advanced concepts','Real-world projects','Industry best practices','Mentorship'] },
+      { id:'advanced', name:'Advanced', description:'Experienced learner seeking mastery', icon:'⚡', features:['Expert techniques','Complex challenges','Specializations','Leadership skills'] }
+    ];
+
+    const goals = ['Career change', 'Skill upgrade', 'Personal interest', 'Academic requirement', 'Start a business', 'Freelancing', 'Hobby development', 'Professional certification'];
+
+    // --- Utility: canProceed ---
+    function canProceed() {
+      if (currentStep === 1) return selectedField !== null;
+      if (currentStep === 2) return selectedLevel !== null;
+      if (currentStep === 3) return userGoals.length > 0;
+      return true;
+    }
+
+    // --- Render functions ---
+    function updateProgressBar() {
+      const pct = Math.round((currentStep / 4) * 100);
+      document.getElementById('stepLabel').textContent = `Step ${currentStep} of 4`;
+      document.getElementById('pctLabel').textContent = `${pct}% Complete`;
+      document.getElementById('progressFill').style.width = `${pct}%`;
+    }
+
+    function render() {
+      updateProgressBar();
+      const container = document.getElementById('onboardingContent');
+      container.innerHTML = ''; // clear
+
+      if (currentStep === 1) renderFieldSelection(container);
+      else if (currentStep === 2) renderLevelSelection(container);
+      else if (currentStep === 3) renderGoalsSelection(container);
+      else if (currentStep === 4) renderSummary(container);
+
+      renderNav(); // update next/start button
+      mountIcons(); // attach lucide icons
+    }
+
+    // Step 1
+    function renderFieldSelection(root) {
+      const header = document.createElement('div');
+      header.className = 'text-center mb-8';
+      header.innerHTML = `
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-3">What would you like to learn?</h1>
+        <p class="text-white/70 max-w-2xl mx-auto">Choose a field that excites you. We'll create a personalized learning path based on your selection.</p>
+      `;
+      root.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+      fields.forEach(f => {
+        const isSelected = selectedField?.id === f.id;
+        const card = document.createElement('div');
+        card.className = `relative glass-card rounded-xl p-6 border-2 cursor-pointer transition-all duration-300 hover:scale-105 ${isSelected ? 'border-cyan-400 bg-cyan-400/12 scale-105' : 'border-white/20 hover:border-white/40' }`;
+        card.setAttribute('role','button');
+        card.setAttribute('tabindex','0');
+        card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+
+        card.innerHTML = `
+          ${isSelected ? '<div class="absolute -top-2 -right-2"><span class="check-badge inline-flex items-center justify-center rounded-full bg-slate-900 p-1"><i data-lucide="check-circle" class="text-cyan-400"></i></span></div>' : ''}
+          <div class="w-16 h-16 rounded-lg flex items-center justify-center mb-4 bg-gradient-to-r ${f.gradient}">
+            <span class="icon"><i data-lucide="${f.icon}"></i></span>
+          </div>
+          <h3 class="text-xl font-semibold text-white mb-2">${f.name}</h3>
+          <p class="text-white/70 text-sm mb-4 leading-relaxed">${f.description}</p>
+          <div class="flex items-center justify-between text-xs text-white/60">
+            <div class="flex items-center gap-1"><i data-lucide="star" class="w-3 h-3"></i><span>${f.popularity}% popular</span></div>
+            <div class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i><span>${f.duration}</span></div>
+          </div>
+          <div class="flex items-center gap-1 mt-1 text-xs text-white/60"><i data-lucide="users" class="w-3 h-3"></i><span>${f.jobs}</span></div>
+        `;
+
+        // click / keyboard select
+        card.addEventListener('click', () => { selectedField = f; render(); });
+        card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectedField = f; render(); } });
+
+        grid.appendChild(card);
+      });
+
+      root.appendChild(grid);
+    }
+
+    // Step 2
+    function renderLevelSelection(root) {
+      if (!selectedField) {
+        // guard, shouldn't happen
+        currentStep = 1; render(); return;
+      }
+
+      const header = document.createElement('div');
+      header.className = 'text-center mb-8';
+      header.innerHTML = `
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-3">What's your current level in ${selectedField.name}?</h1>
+        <p class="text-white/70 max-w-2xl mx-auto">Help us understand your experience so we can create the perfect learning path for you.</p>
+      `;
+      root.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid md:grid-cols-3 gap-8 max-w-4xl mx-auto';
+      levels.forEach(l => {
+        const isSelected = selectedLevel?.id === l.id;
+        const card = document.createElement('div');
+        card.className = `relative glass-card rounded-xl p-8 border-2 cursor-pointer transition-all duration-300 hover:scale-105 ${isSelected ? 'border-cyan-400 bg-cyan-400/12 scale-105' : 'border-white/20 hover:border-white/40' }`;
+        card.setAttribute('role','button');
+        card.setAttribute('tabindex','0');
+        card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+
+        let featuresHtml = l.features.map(f => `<div class="flex items-center gap-2 text-white/70 text-sm"><i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i><span>${f}</span></div>`).join('');
+
+        card.innerHTML = `
+          ${isSelected ? '<div class="absolute -top-2 -right-2"><span class="check-badge inline-flex items-center justify-center rounded-full bg-slate-900 p-1"><i data-lucide="check-circle" class="text-cyan-400"></i></span></div>' : ''}
+          <div class="text-center mb-6">
+            <div class="text-4xl mb-3">${l.icon}</div>
+            <h3 class="text-2xl font-bold text-white mb-2">${l.name}</h3>
+            <p class="text-white/70 mb-4">${l.description}</p>
+          </div>
+          <div class="space-y-2">
+            <h4 class="text-white font-semibold mb-3">What you'll get:</h4>
+            ${featuresHtml}
+          </div>
+        `;
+        card.addEventListener('click', () => { selectedLevel = l; render(); });
+        card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectedLevel = l; render(); } });
+
+        grid.appendChild(card);
+      });
+
+      root.appendChild(grid);
+    }
+
+    // Step 3
+    function renderGoalsSelection(root) {
+      const header = document.createElement('div');
+      header.className = 'text-center mb-8';
+      header.innerHTML = `
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-3">What are your learning goals?</h1>
+        <p class="text-white/70 max-w-2xl mx-auto">Select all that apply. This helps us personalize your experience and recommend relevant content.</p>
+      `;
+      root.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid md:grid-cols-4 gap-4 max-w-4xl mx-auto';
+      goals.forEach(g => {
+        const active = userGoals.includes(g);
+        const btn = document.createElement('button');
+        btn.className = `p-4 rounded-lg border-2 transition-all duration-300 text-left ${active ? 'border-cyan-400 bg-cyan-400/12 text-white' : 'border-white/20 bg-white/5 text-white/70 hover:border-white/40 hover:bg-white/10' }`;
+        btn.setAttribute('type','button');
+        btn.innerHTML = `${g} ${active ? '<span class="inline-block ml-2"><i data-lucide="check-circle" class="text-cyan-400 w-5 h-5"></i></span>' : ''}`;
+        btn.addEventListener('click', () => {
+          if (userGoals.includes(g)) userGoals = userGoals.filter(x => x !== g);
+          else userGoals.push(g);
+          render();
+        });
+        grid.appendChild(btn);
+      });
+
+      root.appendChild(grid);
+    }
+
+    // Step 4 summary
+    function renderSummary(root) {
+      const header = document.createElement('div');
+      header.className = 'text-center mb-6';
+      header.innerHTML = `
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-3">Perfect! Let's create your learning path</h1>
+        <p class="text-white/70 max-w-2xl mx-auto">Based on your choices, we'll create a personalized curriculum just for you.</p>
+      `;
+      root.appendChild(header);
+
+      const box = document.createElement('div');
+      box.className = 'max-w-2xl mx-auto glass-card rounded-xl p-8 border border-white/10';
+      box.innerHTML = `
+        <h3 class="text-2xl font-bold text-white mb-6">Your Learning Profile:</h3>
+        <div class="space-y-6">
+          <div>
+            <h4 class="text-white font-semibold mb-2">Field:</h4>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-r ${selectedField?.gradient || 'from-gray-600 to-gray-700'}">
+                ${selectedField ? `<i data-lucide="${selectedField.icon}"></i>` : ''}
+              </div>
+              <span class="text-white">${selectedField?.name || '—'}</span>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-2">Level:</h4>
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">${selectedLevel?.icon || ''}</span>
+              <span class="text-white">${selectedLevel?.name || '—'}</span>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-2">Goals:</h4>
+            <div class="flex flex-wrap gap-2">
+              ${userGoals.length ? userGoals.map(g => `<span class="px-3 py-1 bg-cyan-400/12 text-cyan-300 rounded-full text-sm">${g}</span>`).join('') : '<span class="text-white/70">No goals selected</span>'}
+            </div>
+          </div>
+        </div>
+      `;
+      root.appendChild(box);
+    }
+
+    // navigation button rendering
+    function renderNav() {
+      const wrap = document.getElementById('stepActionWrap');
+      wrap.innerHTML = '';
+
+      // prev button enable/disable
+      const prevBtn = document.getElementById('prevBtn');
+      if (currentStep === 1) { prevBtn.disabled = true; prevBtn.setAttribute('aria-disabled','true'); }
+      else { prevBtn.disabled = false; prevBtn.setAttribute('aria-disabled','false'); }
+
+      if (currentStep < 4) {
+        const next = document.createElement('button');
+        next.className = `flex items-center gap-2 px-8 py-3 rounded-lg font-semibold transition-all ${canProceed() ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white transform hover:scale-105' : 'bg-white/20 text-white/50 cursor-not-allowed opacity-60' }`;
+        next.setAttribute('type','button');
+        next.setAttribute('aria-disabled', canProceed() ? 'false' : 'true');
+        next.innerHTML = `Next Step <span class="icon"><i data-lucide="arrow-right"></i></span>`;
+        next.addEventListener('click', () => { if (canProceed()) { currentStep++; render(); } });
+        wrap.appendChild(next);
+      } else {
+        const start = document.createElement('button');
+        start.className = 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transform hover:scale-105 transition-all';
+        start.setAttribute('type','button');
+        start.innerHTML = `Start Assessment <span class="icon"><i data-lucide="arrow-right"></i></span>`;
+        start.addEventListener('click', () => { 
+          alert('Starting assessment...'); 
+          location.href = 'skillAssessment.html';
+        });
+        wrap.appendChild(start);
+      }
+
+      mountIcons();
+    }
+
+    // prev button
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (currentStep > 1) { currentStep--; render(); }
+    });
+
+    // initial render
+    render();
+
+    // ensure lucide icons are mounted after a small tick (for dynamic icons)
+    setTimeout(mountIcons, 50);
+  </script>
+</body>
+</html>

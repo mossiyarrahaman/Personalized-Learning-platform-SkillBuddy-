@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SkillBuddy – Login</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Optional: slightly slower pulse for background blobs */
+    @keyframes slow-pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+    .animate-slow-pulse { animation: slow-pulse 3s ease-in-out infinite; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-x-hidden">
+
+  <!-- Animated Background -->
+  <div class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl animate-slow-pulse"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-slow-pulse" style="animation-delay:1s"></div>
+    <div class="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-slow-pulse" style="animation-delay:2s"></div>
+  </div>
+
+  <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-8 relative z-10">
+
+    <!-- Left Side - Branding -->
+    <div class="hidden lg:flex flex-col justify-center p-12 text-white">
+      <div class="space-y-6">
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-16 h-16 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center transform rotate-6 hover:rotate-12 transition-transform">
+            <i data-lucide="brain" class="w-10 h-10"></i>
+          </div>
+          <div>
+            <h1 class="text-4xl font-bold">SkillBuddy</h1>
+            <p class="text-cyan-300 text-sm">AI-Powered Learning</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <h2 class="text-3xl font-bold leading-tight">
+            Transform Your Learning Journey with AI
+          </h2>
+          <p class="text-white/80 text-lg leading-relaxed">
+            Join over 50,000+ learners who are already experiencing personalized education powered by cutting-edge AI technology.
+          </p>
+        </div>
+
+        <div class="space-y-4 pt-8" id="feature-list">
+          <!-- Features -->
+          <div class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-full bg-cyan-400/20 flex items-center justify-center group-hover:bg-cyan-400/30 transition-colors">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <span class="text-white/90">Personalized learning paths tailored to your goals</span>
+          </div>
+          <div class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-full bg-cyan-400/20 flex items-center justify-center group-hover:bg-cyan-400/30 transition-colors">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <span class="text-white/90">Real-time progress tracking and analytics</span>
+          </div>
+          <div class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-full bg-cyan-400/20 flex items-center justify-center group-hover:bg-cyan-400/30 transition-colors">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <span class="text-white/90">Expert instructors and curated content</span>
+          </div>
+          <div class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-full bg-cyan-400/20 flex items-center justify-center group-hover:bg-cyan-400/30 transition-colors">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <span class="text-white/90">24/7 AI-powered learning assistance</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-6 pt-8">
+          <div class="text-center">
+            <div class="text-3xl font-bold text-cyan-400 mb-1">50K+</div>
+            <div class="text-white/60 text-sm">Active Learners</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-cyan-400 mb-1">200+</div>
+            <div class="text-white/60 text-sm">Courses</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-cyan-400 mb-1">95%</div>
+            <div class="text-white/60 text-sm">Success Rate</div>
+          </div>
+        </div>
+
+        <!-- Role-specific benefits -->
+        <div class="mt-8 p-6 bg-white/10 rounded-2xl border border-white/20">
+          <h3 class="text-lg font-semibold text-white mb-4" id="benefit-title">🎓 For Students</h3>
+          <ul class="space-y-2 text-white/80 text-sm" id="benefit-list">
+            <li>• Access to 200+ premium courses</li>
+            <li>• AI-powered personalized recommendations</li>
+            <li>• Track your progress with detailed analytics</li>
+            <li>• Earn certificates upon completion</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side - Login Form -->
+    <div class="flex items-center justify-center p-4">
+      <div class="w-full max-w-md">
+        <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-8">
+          <!-- Mobile Logo -->
+          <div class="lg:hidden flex items-center justify-center gap-2 mb-8">
+            <div class="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center">
+              <i data-lucide="brain" class="w-7 h-7 text-white"></i>
+            </div>
+            <span class="text-2xl font-bold text-white">SkillBuddy</span>
+          </div>
+
+          <!-- Header -->
+          <div class="text-center mb-8">
+            <h2 id="header-title" class="text-3xl font-bold text-white mb-2">Welcome Back!</h2>
+            <p id="header-sub" class="text-white/70">Sign in to continue your learning journey</p>
+          </div>
+
+          <!-- Role Selection -->
+          <div class="mb-6">
+            <label class="block text-white/80 text-sm font-medium mb-3 text-center">I am a</label>
+            <div class="grid grid-cols-2 gap-3">
+              <!-- Student Button -->
+              <button type="button" id="btn-student" class="relative py-4 px-4 rounded-xl font-semibold transition-all transform hover:scale-[1.02] bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg">
+                <div class="flex flex-col items-center gap-2">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center bg-white/20">
+                    <!-- book icon approximation -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <span class="text-sm">Student</span>
+                </div>
+                <div id="badge-student" class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"><i data-lucide="check-circle-2" class="w-4 h-4 text-white"></i></div>
+              </button>
+              <!-- Teacher Button -->
+              <button type="button" id="btn-teacher" class="relative py-4 px-4 rounded-xl font-semibold transition-all transform hover:scale-[1.02] bg-white/10 text-white/70 border border-white/20 hover:bg-white/15">
+                <div class="flex flex-col items-center gap-2">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center bg-white/10">
+                    <!-- monitor icon approximation -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <span class="text-sm">Teacher</span>
+                </div>
+                <div id="badge-teacher" class="hidden absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"><i data-lucide="check-circle-2" class="w-4 h-4 text-white"></i></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Social Login -->
+          <div class="space-y-3 mb-6">
+            <button id="btn-google" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-800 font-semibold py-3 px-4 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+              <i data-lucide="chrome" class="w-5 h-5"></i>
+              Continue with Google
+            </button>
+            <div class="grid grid-cols-2 gap-3">
+              <button id="btn-github" class="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all">
+                <i data-lucide="github" class="w-5 h-5"></i>
+                GitHub
+              </button>
+              <button id="btn-apple" class="flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white font-semibold py-3 px-4 rounded-xl transition-all">
+                <i data-lucide="apple" class="w-5 h-5"></i>
+                Apple
+              </button>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="relative mb-6">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-white/20"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-4 bg-transparent text-white/60">Or continue with email</span>
+            </div>
+          </div>
+
+          <!-- Form Fields -->
+          <form id="auth-form" class="space-y-5" novalidate>
+            <!-- Full Name (Sign Up only) -->
+            <div id="wrap-name" class="hidden">
+              <label class="block text-white/80 text-sm font-medium mb-2">Full Name</label>
+              <input id="name" type="text" name="name" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" placeholder="Enter your full name" />
+              <div id="err-name" class="hidden flex items-center gap-2 mt-2 text-red-400 text-sm"><i data-lucide="alert-circle" class="w-4 h-4"></i><span></span></div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-white/80 text-sm font-medium mb-2">Email Address</label>
+              <div class="relative">
+                <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50"></i>
+                <input id="email" type="email" name="email" class="w-full bg-white/10 border border-white/20 rounded-xl pl-11 pr-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" placeholder="you@example.com" />
+              </div>
+              <div id="err-email" class="hidden flex items-center gap-2 mt-2 text-red-400 text-sm"><i data-lucide="alert-circle" class="w-4 h-4"></i><span></span></div>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label class="block text-white/80 text-sm font-medium mb-2">Password</label>
+              <div class="relative">
+                <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50"></i>
+                <input id="password" type="password" name="password" class="w-full bg-white/10 border border-white/20 rounded-xl pl-11 pr-12 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" placeholder="Enter your password" />
+                <button id="toggle-password" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white">
+                  <i data-lucide="eye" class="w-5 h-5"></i>
+                </button>
+              </div>
+              <div id="err-password" class="hidden flex items-center gap-2 mt-2 text-red-400 text-sm"><i data-lucide="alert-circle" class="w-4 h-4"></i><span></span></div>
+            </div>
+
+            <!-- Confirm Password (Sign Up only) -->
+            <div id="wrap-confirm" class="hidden">
+              <label class="block text-white/80 text-sm font-medium mb-2">Confirm Password</label>
+              <div class="relative">
+                <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50"></i>
+                <input id="confirmPassword" type="password" name="confirmPassword" class="w-full bg-white/10 border border-white/20 rounded-xl pl-11 pr-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" placeholder="Confirm your password" />
+              </div>
+              <div id="err-confirm" class="hidden flex items-center gap-2 mt-2 text-red-400 text-sm"><i data-lucide="alert-circle" class="w-4 h-4"></i><span></span></div>
+            </div>
+
+            <!-- Remember / Forgot (Login only) -->
+            <div id="wrap-remember" class="flex items-center justify-between">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input id="remember" type="checkbox" class="w-4 h-4 rounded" />
+                <span class="text-white/80 text-sm">Remember me</span>
+              </label>
+              <button type="button" class="text-cyan-400 hover:text-cyan-300 text-sm font-medium">Forgot Password?</button>
+            </div>
+
+            <!-- Submit -->
+            <button id="submit" type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-3 px-4 rounded-xl transition-all transform hover:scale-[1.02] disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <span id="spinner" class="hidden w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span id="submit-text">Sign In</span>
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+          </form>
+
+          <!-- Switch mode -->
+          <div class="mt-6 text-center">
+            <p class="text-white/70">
+              <span id="switch-lead">Don't have an account?</span>
+              <button id="switch-mode" class="text-cyan-400 hover:text-cyan-300 font-semibold">Sign Up</button>
+            </p>
+          </div>
+
+          <!-- Limited Offer (Sign Up only) -->
+          <div id="limited-offer" class="hidden mt-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/30 rounded-xl p-4 text-center">
+            <div class="flex items-center justify-center gap-2 mb-1">
+              <i data-lucide="sparkles" class="w-4 h-4 text-yellow-400"></i>
+              <span class="text-yellow-400 font-semibold text-sm">Limited Time Offer</span>
+            </div>
+            <p id="offer-text" class="text-white/80 text-sm">Get 30 days free premium access when you sign up today!</p>
+          </div>
+
+          <!-- Role-specific info (Login only) -->
+          <div id="login-role-hint" class="mt-4 text-center">
+            <p class="text-white/60 text-xs">Logging in as:
+              <span id="role-pill" class="font-semibold text-cyan-400">Student</span>
+            </p>
+          </div>
+        </div>
+
+        <p class="text-center text-white/50 text-sm mt-6">© 2025 SkillBuddy. All rights reserved.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Initialize icons once DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) window.lucide.createIcons();
+    });
+
+    // State (vanilla)
+    const state = {
+      isLogin: true,
+      showPassword: false,
+      userRole: 'student',
+      formData: { email: '', password: '', name: '', confirmPassword: '' },
+      isLoading: false,
+      errors: {}
+    };
+
+    // Elements
+    const headerTitle = document.getElementById('header-title');
+    const headerSub = document.getElementById('header-sub');
+    const btnStudent = document.getElementById('btn-student');
+    const btnTeacher = document.getElementById('btn-teacher');
+    const badgeStudent = document.getElementById('badge-student');
+    const badgeTeacher = document.getElementById('badge-teacher');
+    const benefitTitle = document.getElementById('benefit-title');
+    const benefitList = document.getElementById('benefit-list');
+
+    const wrapName = document.getElementById('wrap-name');
+    const wrapConfirm = document.getElementById('wrap-confirm');
+    const wrapRemember = document.getElementById('wrap-remember');
+
+    const inputName = document.getElementById('name');
+    const inputEmail = document.getElementById('email');
+    const inputPassword = document.getElementById('password');
+    const inputConfirm = document.getElementById('confirmPassword');
+
+    const errName = document.getElementById('err-name');
+    const errEmail = document.getElementById('err-email');
+    const errPassword = document.getElementById('err-password');
+    const errConfirm = document.getElementById('err-confirm');
+
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const submitBtn = document.getElementById('submit');
+    const spinner = document.getElementById('spinner');
+    const submitText = document.getElementById('submit-text');
+
+    const switchModeBtn = document.getElementById('switch-mode');
+    const switchLead = document.getElementById('switch-lead');
+
+    const limitedOffer = document.getElementById('limited-offer');
+    const offerText = document.getElementById('offer-text');
+    const loginRoleHint = document.getElementById('login-role-hint');
+    const rolePill = document.getElementById('role-pill');
+
+    const form = document.getElementById('auth-form');
+
+    // Helpers
+    function setError(elWrap, message) {
+      if (!elWrap) return;
+      elWrap.classList.remove('hidden');
+      elWrap.querySelector('span').textContent = message;
+    }
+    function clearError(elWrap) {
+      if (!elWrap) return;
+      elWrap.classList.add('hidden');
+      elWrap.querySelector('span').textContent = '';
+    }
+
+    function syncBorders() {
+      // toggle red border when errors exist
+      inputName && (inputName.classList.toggle('border-red-400', !!state.errors.name));
+      inputEmail.classList.toggle('border-red-400', !!state.errors.email);
+      inputPassword.classList.toggle('border-red-400', !!state.errors.password);
+      inputConfirm && (inputConfirm.classList.toggle('border-red-400', !!state.errors.confirmPassword));
+    }
+
+    function renderRolePanels() {
+      // Left side benefit title + list
+      if (state.userRole === 'student') {
+        benefitTitle.textContent = '🎓 For Students';
+        benefitList.innerHTML = `
+          <li>• Access to 200+ premium courses</li>
+          <li>• AI-powered personalized recommendations</li>
+          <li>• Track your progress with detailed analytics</li>
+          <li>• Earn certificates upon completion</li>`;
+        rolePill.textContent = 'Student';
+        rolePill.classList.remove('text-purple-400');
+        rolePill.classList.add('text-cyan-400');
+        if (!state.isLogin) {
+          offerText.textContent = 'Get 30 days free premium access when you sign up today!';
+        }
+      } else {
+        benefitTitle.textContent = '👨‍🏫 For Teachers';
+        benefitList.innerHTML = `
+          <li>• Create and manage unlimited courses</li>
+          <li>• Advanced student analytics dashboard</li>
+          <li>• Automated grading and feedback tools</li>
+          <li>• Reach a global audience of learners</li>`;
+        rolePill.textContent = 'Teacher';
+        rolePill.classList.remove('text-cyan-400');
+        rolePill.classList.add('text-purple-400');
+        if (!state.isLogin) {
+          offerText.textContent = 'Create courses and reach 50,000+ students worldwide!';
+        }
+      }
+
+      // Toggle selected styles on role buttons
+      const makeActive = (btn, badge, gradient) => {
+        btn.classList.remove('bg-white/10', 'text-white/70', 'border', 'border-white/20', 'hover:bg-white/15');
+        btn.classList.add('text-white', 'shadow-lg');
+        btn.classList.add('bg-gradient-to-r');
+        if (gradient === 'student') {
+          btn.classList.add('from-cyan-500', 'to-blue-500');
+        } else {
+          btn.classList.add('from-purple-500', 'to-pink-500');
+        }
+        badge.classList.remove('hidden');
+      };
+      const makeInactive = (btn, badge) => {
+        btn.classList.remove('text-white', 'shadow-lg', 'from-cyan-500', 'to-blue-500', 'from-purple-500', 'to-pink-500');
+        btn.classList.remove('bg-gradient-to-r');
+        btn.classList.add('bg-white/10', 'text-white/70', 'border', 'border-white/20', 'hover:bg-white/15');
+        badge.classList.add('hidden');
+      };
+
+      if (state.userRole === 'student') {
+        makeActive(btnStudent, badgeStudent, 'student');
+        makeInactive(btnTeacher, badgeTeacher);
+      } else {
+        makeActive(btnTeacher, badgeTeacher, 'teacher');
+        makeInactive(btnStudent, badgeStudent);
+      }
+
+      // Update login hint visibility
+      loginRoleHint.style.display = state.isLogin ? 'block' : 'none';
+    }
+
+    function renderMode() {
+      headerTitle.textContent = state.isLogin ? 'Welcome Back!' : 'Create Account';
+      headerSub.textContent = state.isLogin ? 'Sign in to continue your learning journey' : 'Start your personalized learning experience';
+
+      // Show/Hide sections
+      wrapName.classList.toggle('hidden', state.isLogin);
+      wrapConfirm.classList.toggle('hidden', state.isLogin);
+      wrapRemember.style.display = state.isLogin ? 'flex' : 'none';
+      limitedOffer.classList.toggle('hidden', state.isLogin);
+
+      // Button
+      submitText.textContent = state.isLogin ? 'Sign In' : 'Create Account';
+
+      // Switch text
+      switchLead.textContent = state.isLogin ? "Don't have an account?" : 'Already have an account?';
+      switchModeBtn.textContent = state.isLogin ? 'Sign Up' : 'Sign In';
+
+      // Offer message depends on role
+      renderRolePanels();
+
+      // Reset validation UI
+      [errName, errEmail, errPassword, errConfirm].forEach(clearError);
+      state.errors = {};
+      syncBorders();
+    }
+
+    // Validation
+    function validate() {
+      const errors = {};
+      const email = inputEmail.value.trim();
+      const password = inputPassword.value;
+      const name = inputName.value.trim();
+      const confirm = inputConfirm.value;
+
+      if (!email) {
+        errors.email = 'Email is required';
+      } else if (!(/\S+@\S+\.\S+/.test(email))) {
+        errors.email = 'Email is invalid';
+      }
+
+      if (!password) {
+        errors.password = 'Password is required';
+      } else if (password.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
+      }
+
+      if (!state.isLogin) {
+        if (!name) errors.name = 'Name is required';
+        if (!confirm) {
+          errors.confirmPassword = 'Please confirm your password';
+        } else if (password !== confirm) {
+          errors.confirmPassword = 'Passwords do not match';
+        }
+      }
+
+      state.errors = errors;
+
+      // Display errors
+      errors.name ? setError(errName, errors.name) : clearError(errName);
+      errors.email ? setError(errEmail, errors.email) : clearError(errEmail);
+      errors.password ? setError(errPassword, errors.password) : clearError(errPassword);
+      errors.confirmPassword ? setError(errConfirm, errors.confirmPassword) : clearError(errConfirm);
+
+      syncBorders();
+      return Object.keys(errors).length === 0;
+    }
+
+    // Social login alerts
+    document.getElementById('btn-google').addEventListener('click', () => alert('Google login clicked - integrate with your OAuth provider'));
+    document.getElementById('btn-github').addEventListener('click', () => alert('GitHub login clicked - integrate with your OAuth provider'));
+    document.getElementById('btn-apple').addEventListener('click', () => alert('Apple login clicked - integrate with your OAuth provider'));
+
+    // Role selection
+    btnStudent.addEventListener('click', () => { state.userRole = 'student'; renderRolePanels(); });
+    btnTeacher.addEventListener('click', () => { state.userRole = 'teacher'; renderRolePanels(); });
+
+    // Show/Hide password
+    togglePasswordBtn.addEventListener('click', () => {
+      state.showPassword = !state.showPassword;
+      inputPassword.type = state.showPassword ? 'text' : 'password';
+      // swap eye icon
+      togglePasswordBtn.innerHTML = `<i data-lucide="${state.showPassword ? 'eye-off' : 'eye'}" class="w-5 h-5"></i>`;
+      if (window.lucide) window.lucide.createIcons({});
+    });
+
+    // Switch mode (Sign In <-> Sign Up)
+    switchModeBtn.addEventListener('click', () => {
+      state.isLogin = !state.isLogin;
+      // reset form
+      inputName.value = '';
+      inputEmail.value = '';
+      inputPassword.value = '';
+      inputConfirm.value = '';
+      renderMode();
+    });
+
+    // Validate on input change (clears that field error)
+    [inputName, inputEmail, inputPassword, inputConfirm].forEach(el => {
+      if (!el) return;
+      el.addEventListener('input', () => {
+        validate();
+      });
+    });
+
+    // Submit
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!validate()) return;
+
+      // Simulate async
+      state.isLoading = true;
+      submitBtn.disabled = true;
+      spinner.classList.remove('hidden');
+
+      setTimeout(() => {
+        state.isLoading = false;
+        submitBtn.disabled = false;
+        spinner.classList.add('hidden');
+
+        alert(`${state.isLogin ? 'Login' : 'Sign up'} successful as ${state.userRole}!`);
+      }, 1500);
+    });
+
+    // Initial render
+    renderMode();
+  </script>
+</body>
+</html>

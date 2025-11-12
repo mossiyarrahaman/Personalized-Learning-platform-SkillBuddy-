@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Assessment Quiz System — Single File (Tailwind + JS)</title>
+
+  <!-- Tailwind (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide icons -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.244.0/dist/umd/lucide.min.js"></script>
+
+  <!-- Chart.js for simple pie chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Small custom styles to polish code blocks and buttons */
+    pre code { display: block; white-space: pre; }
+    .card-shadow { box-shadow: 0 6px 18px rgba(2,6,23,0.6); }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(6px); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 text-white">
+  <div id="app" class="max-w-7xl mx-auto"></div>
+
+  <script>
+  /**************************************************************************
+   * Single-file conversion of the React AssessmentQuizSystem component
+   * into plain HTML + Tailwind CSS + Vanilla JS (no build step)
+   * - Uses lucide icons (UMD) and Chart.js via CDN
+   * - App state and rendering implemented with simple virtual-DOM style re-render
+   **************************************************************************/
+
+  // --- Data (copied + slightly adapted from your React component) ---
+  const quizTypes = [
+    { id: 'practice', name: 'Practice Quiz', description: 'Self-paced learning with hints and explanations', duration: 30, questions: 15, allowHints: true, showResults: 'immediate' },
+    { id: 'assessment', name: 'Formal Assessment', description: 'Graded evaluation with time limits', duration: 60, questions: 25, allowHints: false, showResults: 'after_completion' },
+    { id: 'challenge', name: 'Speed Challenge', description: 'Quick-fire questions for skill testing', duration: 15, questions: 20, allowHints: false, showResults: 'immediate' },
+    { id: 'certification', name: 'Certification Exam', description: 'Official certification assessment', duration: 90, questions: 40, allowHints: false, showResults: 'after_review' }
+  ];
+
+  const mockQuestions = [
+    {
+      id: 1, type: 'multiple-choice', difficulty: 'intermediate', topic: 'React Hooks',
+      question: 'What is the correct way to use the useEffect hook for component cleanup?',
+      code: `useEffect(() => {\n  const subscription = subscribeToService();\n  // What should go here?\n}, []);`,
+      options: ['Nothing is needed for cleanup', 'Call subscription.unsubscribe() directly', 'Return a cleanup function', 'Use a separate useEffect for cleanup'],
+      correct: 2, explanation: 'The useEffect hook should return a cleanup function that will be called when the component unmounts or before the effect runs again.',
+      hint: 'Think about what happens when a component is removed from the DOM.', points: 10, timeEstimate: 2
+    },
+    {
+      id: 2, type: 'multiple-choice', difficulty: 'beginner', topic: 'JavaScript ES6',
+      question: 'Which of the following is the correct syntax for arrow functions?',
+      options: ['const myFunc = (x) -> { return x * 2; }', 'const myFunc = (x) => { return x * 2; }', 'const myFunc = (x) = { return x * 2; }', 'const myFunc = (x) >> { return x * 2; }'],
+      correct: 1, explanation: 'Arrow functions use the => syntax to define functions in a more concise way.', hint: 'Arrow functions are written with an "arrow" symbol.', points: 5, timeEstimate: 1
+    },
+    {
+      id: 3, type: 'code-completion', difficulty: 'advanced', topic: 'React State Management',
+      question: 'Complete the custom hook for managing local storage:',
+      code: `function useLocalStorage(key, initialValue) {\n  const [storedValue, setStoredValue] = useState(() => {\n    try {\n      const item = window.localStorage.getItem(key);\n      return item ? JSON.parse(item) : initialValue;\n    } catch (error) {\n      return initialValue;\n    }\n  });\n\n  const setValue = (value) => {\n    try {\n      // Complete this function\n      ________________\n    } catch (error) {\n      console.error(error);\n    }\n  };\n\n  return [storedValue, setValue];\n}`,
+      correctAnswer: `setStoredValue(value);\nwindow.localStorage.setItem(key, JSON.stringify(value));`, explanation: 'The setValue function should update both the state and localStorage with the new value.', hint: 'You need to update both the React state and the localStorage.', points: 15, timeEstimate: 5
+    },
+    { id: 4, type: 'true-false', difficulty: 'intermediate', topic: 'React Performance', question: 'React.memo() will prevent a component from re-rendering even when its props change.', correct: false, explanation: 'React.memo() performs a shallow comparison of props. If props change, the component will still re-render.', hint: 'Think about what React.memo actually compares.', points: 8, timeEstimate: 1 },
+    { id: 5, type: 'multiple-select', difficulty: 'advanced', topic: 'React Best Practices', question: 'Which of the following are considered React best practices? (Select all that apply)', options: ['Always use inline styles for better performance', 'Avoid mutating state directly', 'Use keys when rendering lists', 'Put all logic in the render method', 'Extract complex logic into custom hooks', 'Always use class components over functional components'], correct: [1,2,4], explanation: 'Best practices include avoiding direct state mutation, using keys for lists, and extracting logic into custom hooks.', hint: 'Think about what makes React code maintainable and performant.', points: 20, timeEstimate: 3 }
+  ];
+
+  // --- App State ---
+  let state = {
+    quizState: 'setup', // setup, active, paused, results
+    currentQuestion: 0,
+    answers: {},
+    timeLeft: 0,
+    flaggedQuestions: new Set(),
+    showHints: true,
+    selectedQuizType: 'practice',
+    difficulty: 'intermediate',
+    results: null
+  };
+
+  let timerInterval = null;
+  const root = document.getElementById('app');
+  let chartInstance = null;
+
+  // --- Utility helpers ---
+  function setState(patch) {
+    state = { ...state, ...patch };
+    // Ensure sets remain sets
+    if (patch.flaggedQuestions && !(patch.flaggedQuestions instanceof Set)) {
+      state.flaggedQuestions = new Set(patch.flaggedQuestions);
+    }
+    render();
+  }
+
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${String(secs).padStart(2,'0')}`;
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    if (state.quizState !== 'active') return;
+    timerInterval = setInterval(() => {
+      state.timeLeft = Math.max(0, state.timeLeft - 1);
+      if (state.timeLeft <= 0) {
+        clearInterval(timerInterval);
+        submitQuiz();
+      }
+      render();
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  // --- Actions ---
+  function startQuiz() {
+    const selectedQuiz = quizTypes.find(q => q.id === state.selectedQuizType);
+    setState({ timeLeft: selectedQuiz.duration * 60, quizState: 'active', currentQuestion: 0, answers: {}, flaggedQuestions: new Set(), results: null });
+    // start timer after render
+    setTimeout(startTimer, 50);
+  }
+
+  function togglePause() {
+    if (state.quizState === 'paused') {
+      setState({ quizState: 'active' });
+      setTimeout(startTimer, 50);
+    } else if (state.quizState === 'active') {
+      stopTimer();
+      setState({ quizState: 'paused' });
+    }
+  }
+
+  function toggleFlag(qIndex) {
+    const copy = new Set(state.flaggedQuestions);
+    if (copy.has(qIndex)) copy.delete(qIndex); else copy.add(qIndex);
+    setState({ flaggedQuestions: copy });
+  }
+
+  function handleAnswer(qIndex, answer) {
+    const a = { ...state.answers };
+    a[qIndex] = answer;
+    setState({ answers: a });
+  }
+
+  function submitQuiz() {
+    // compute results
+    const results = calculateResults();
+    stopTimer();
+    setState({ results, quizState: 'results' });
+  }
+
+  // --- Scoring logic --- (mirrors React implementation)
+  function calculateResults() {
+    let totalScore = 0;
+    let maxScore = 0;
+    let correctAnswers = 0;
+    let partialCredit = 0;
+
+    const detailedResults = mockQuestions.map((question, index) => {
+      const userAnswer = state.answers[index];
+      maxScore += question.points;
+
+      let isCorrect = false;
+      let score = 0;
+
+      if (question.type === 'multiple-choice' || question.type === 'true-false') {
+        isCorrect = userAnswer === question.correct;
+        score = isCorrect ? question.points : 0;
+      } else if (question.type === 'multiple-select') {
+        const correctSet = new Set(question.correct);
+        const userSet = new Set(userAnswer || []);
+        if (correctSet.size === userSet.size && [...correctSet].every(x => userSet.has(x))) {
+          isCorrect = true;
+          score = question.points;
+        } else {
+          const intersection = [...correctSet].filter(x => userSet.has(x));
+          const penalty = [...userSet].filter(x => !correctSet.has(x));
+          score = Math.max(0, (intersection.length - penalty.length) / correctSet.size * question.points);
+          if (score > 0 && score < question.points) partialCredit++;
+        }
+      } else if (question.type === 'code-completion') {
+        const keywords = ['setStoredValue', 'localStorage', 'setItem', 'JSON.stringify'];
+        const userKeywords = (userAnswer || '').toLowerCase();
+        const matchedKeywords = keywords.filter(keyword => userKeywords.includes(keyword.toLowerCase()));
+        score = (matchedKeywords.length / keywords.length) * question.points;
+        isCorrect = score === question.points;
+        if (score > 0 && score < question.points) partialCredit++;
+      }
+
+      if (isCorrect) correctAnswers++;
+      totalScore += score;
+
+      return {
+        question: question.question,
+        userAnswer,
+        correct: question.correct || question.correctAnswer,
+        isCorrect,
+        score,
+        maxScore: question.points,
+        explanation: question.explanation,
+        topic: question.topic,
+        difficulty: question.difficulty
+      };
+    });
+
+    const percentage = Math.round((totalScore / maxScore) * 100) || 0;
+    const grade = percentage >= 90 ? 'A' : percentage >= 80 ? 'B' : percentage >= 70 ? 'C' : percentage >= 60 ? 'D' : 'F';
+
+    return {
+      totalScore: Math.round(totalScore),
+      maxScore,
+      percentage,
+      grade,
+      correctAnswers,
+      totalQuestions: mockQuestions.length,
+      partialCredit,
+      timeSpent: (quizTypes.find(q => q.id === state.selectedQuizType).duration * 60) - state.timeLeft,
+      detailedResults,
+      topicBreakdown: calculateTopicBreakdown(detailedResults)
+    };
+  }
+
+  function calculateTopicBreakdown(results) {
+    const topics = {};
+    results.forEach(result => {
+      if (!topics[result.topic]) topics[result.topic] = { correct: 0, total: 0, score: 0, maxScore: 0 };
+      topics[result.topic].total++;
+      topics[result.topic].maxScore += result.maxScore;
+      topics[result.topic].score += result.score;
+      if (result.isCorrect) topics[result.topic].correct++;
+    });
+    return Object.entries(topics).map(([topic, data]) => ({ topic, percentage: Math.round((data.score / data.maxScore) * 100) || 0, correct: data.correct, total: data.total }));
+  }
+
+  // --- Rendering ---
+  function render() {
+    // main container
+    let html = '';
+
+    if (state.quizState === 'setup') html = renderSetup();
+    else if (state.quizState === 'active' || state.quizState === 'paused') html = renderActive();
+    else if (state.quizState === 'results') html = renderResults();
+
+    root.innerHTML = html;
+    // redraw icons
+    if (window.lucide) window.lucide.createIcons();
+
+    // After DOM injection, attach event handlers for dynamic controls
+    attachEventHandlers();
+
+    // If in results view, draw chart
+    if (state.quizState === 'results') drawResultsChart();
+  }
+
+  function renderSetup() {
+    return `
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-8">
+        <div class="mx-auto mb-4 w-20 h-20 rounded-full flex items-center justify-center bg-cyan-900/30">
+          <i data-lucide="brain" class="lucide-icon text-cyan-400" style="width:44px;height:44px"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-2">Assessment Center</h1>
+        <p class="text-white/70">Choose your quiz type and test your knowledge</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        ${quizTypes.map(quiz => `
+          <div data-select-quiz="${quiz.id}" class="p-6 rounded-xl border-2 cursor-pointer transition-all ${state.selectedQuizType === quiz.id ? 'border-cyan-400 bg-cyan-400/20' : 'border-white/20 bg-white/10 hover:border-white/40'}">
+            <h3 class="text-xl font-semibold text-white mb-2">${quiz.name}</h3>
+            <p class="text-white/70 mb-4">${quiz.description}</p>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div class="flex items-center gap-2"><i data-lucide="clock" class="lucide-icon" style="width:16px;height:16px"></i><span class="text-white/80">${quiz.duration} minutes</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="file-text" class="lucide-icon" style="width:16px;height:16px"></i><span class="text-white/80">${quiz.questions} questions</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="lightbulb" class="lucide-icon" style="width:16px;height:16px"></i><span class="text-white/80">${quiz.allowHints ? 'Hints available' : 'No hints'}</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="eye" class="lucide-icon" style="width:16px;height:16px"></i><span class="text-white/80">${quiz.showResults.replace('_',' ')}</span></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
+        <h3 class="text-lg font-semibold text-white mb-4">Quiz Settings</h3>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-white/70 text-sm mb-2">Difficulty Level</label>
+            <select id="difficulty-select" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white">
+              <option value="beginner" ${state.difficulty === 'beginner' ? 'selected' : ''}>Beginner</option>
+              <option value="intermediate" ${state.difficulty === 'intermediate' ? 'selected' : ''}>Intermediate</option>
+              <option value="advanced" ${state.difficulty === 'advanced' ? 'selected' : ''}>Advanced</option>
+              <option value="mixed" ${state.difficulty === 'mixed' ? 'selected' : ''}>Mixed Difficulty</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-white/70 text-sm mb-2">Show Hints</label>
+            <div class="flex items-center gap-3">
+              <button data-toggle-hints="true" class="px-4 py-2 rounded-lg transition-colors ${state.showHints ? 'bg-cyan-500 text-white' : 'bg-white/10 text-white/70'}">Enabled</button>
+              <button data-toggle-hints="false" class="px-4 py-2 rounded-lg transition-colors ${!state.showHints ? 'bg-cyan-500 text-white' : 'bg-white/10 text-white/70'}">Disabled</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button id="start-quiz" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold flex items-center gap-3 mx-auto transform hover:scale-105 transition-all">
+          <i data-lucide="play" class="lucide-icon" style="width:20px;height:20px"></i>
+          Start Quiz
+        </button>
+      </div>
+    </div>
+    `;
+  }
+
+  function renderActive() {
+    const q = mockQuestions[state.currentQuestion];
+    const selectedQuiz = quizTypes.find(qt => qt.id === state.selectedQuizType);
+    const answeredCount = Object.keys(state.answers).length;
+
+    return `
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="px-3 py-1 rounded-full text-sm font-medium ${state.timeLeft < 300 ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}">
+              <i data-lucide="clock" class="lucide-icon inline mr-1" style="width:16px;height:16px"></i>
+              ${formatTime(state.timeLeft)}
+            </div>
+            <div class="text-white/70">Question ${state.currentQuestion + 1} of ${mockQuestions.length}</div>
+            <div class="text-white/70">${selectedQuiz.name}</div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button data-toggle-flag="${state.currentQuestion}" class="p-2 rounded-lg transition-colors ${state.flaggedQuestions.has(state.currentQuestion) ? 'bg-yellow-500/20 text-yellow-400' : 'bg-white/10 text-white/60 hover:text-white'}">
+              <i data-lucide="flag" class="lucide-icon" style="width:18px;height:18px"></i>
+            </button>
+            <button data-pause class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors">
+              <i data-lucide="pause" class="lucide-icon" style="width:18px;height:18px"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="w-full bg-white/20 rounded-full h-2 mt-4">
+          <div class="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full transition-all duration-300" style="width: ${((state.currentQuestion + 1) / mockQuestions.length) * 100}%"></div>
+        </div>
+      </div>
+
+      <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 mb-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-3 py-1 rounded-full text-xs font-medium ${q.difficulty === 'beginner' ? 'bg-green-500/20 text-green-400' : q.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}">${q.difficulty}</span>
+          <span class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-medium">${q.topic}</span>
+          <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">${q.points} points</span>
+        </div>
+
+        <h3 class="text-2xl font-semibold text-white mb-6">${q.question}</h3>
+
+        ${q.code ? `<div class="bg-gray-900 rounded-lg p-4 mb-6 border border-gray-700"><pre class="text-green-400 text-sm overflow-x-auto"><code class="mono">${escapeHtml(q.code)}</code></pre></div>` : ''}
+
+        <div class="space-y-4 mb-6">
+          ${renderQuestionInputs(q, state.currentQuestion)}
+        </div>
+
+        ${state.showHints && selectedQuiz.allowHints && q.hint ? `
+          <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-4 border border-yellow-400/30">
+            <div class="flex items-center gap-2 mb-2"><i data-lucide="lightbulb" class="lucide-icon" style="width:18px;height:18px"></i><span class="text-yellow-400 font-medium">Hint</span></div>
+            <p class="text-white/80 text-sm">${q.hint}</p>
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="flex items-center justify-between">
+        <button data-prev class="flex items-center gap-2 px-6 py-3 rounded-lg transition-all ${state.currentQuestion === 0 ? 'text-white/30 cursor-not-allowed' : 'text-white hover:bg-white/10 border border-white/20'}"><i data-lucide="arrow-left" class="lucide-icon" style="width:18px;height:18px"></i>Previous</button>
+
+        <div class="flex items-center gap-4">
+          <span class="text-white/70 text-sm">${answeredCount} of ${mockQuestions.length} answered</span>
+          ${state.flaggedQuestions.size > 0 ? `<span class="text-yellow-400 text-sm flex items-center gap-1"><i data-lucide="flag" class="lucide-icon" style="width:14px;height:14px"></i>${state.flaggedQuestions.size} flagged</span>` : ''}
+        </div>
+
+        ${state.currentQuestion === mockQuestions.length - 1 ? `
+          <button data-submit class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all">Submit Quiz <i data-lucide="check-circle" class="lucide-icon" style="width:18px;height:18px"></i></button>
+        ` : `
+          <button data-next class="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all">Next <i data-lucide="arrow-right" class="lucide-icon" style="width:18px;height:18px"></i></button>
+        `}
+      </div>
+    </div>
+    `;
+  }
+
+  function renderQuestionInputs(q, qIndex) {
+    if (q.type === 'multiple-choice') {
+      return q.options.map((opt, idx) => `
+        <button data-option-index="${idx}" data-qindex="${qIndex}" class="w-full text-left p-4 rounded-lg border-2 transition-all ${state.answers[qIndex] === idx ? 'border-cyan-400 bg-cyan-400/20' : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'}">
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center ${state.answers[qIndex] === idx ? 'border-cyan-400 bg-cyan-400' : 'border-white/40'}">${state.answers[qIndex] === idx ? '<i data-lucide="check-circle" style="width:16px;height:16px"></i>' : ''}</div>
+            <span class="text-white">${opt}</span>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    if (q.type === 'multiple-select') {
+      return q.options.map((opt, idx) => {
+        const selected = (state.answers[qIndex] || []).includes(idx);
+        return `
+          <button data-toggle-multi="${idx}" data-qindex="${qIndex}" class="w-full text-left p-4 rounded-lg border-2 transition-all ${selected ? 'border-cyan-400 bg-cyan-400/20' : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'}">
+            <div class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded border-2 flex items-center justify-center ${selected ? 'border-cyan-400 bg-cyan-400' : 'border-white/40'}">${selected ? '<i data-lucide="check-circle" style="width:16px;height:16px"></i>' : ''}</div>
+              <span class="text-white">${opt}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    if (q.type === 'true-false') {
+      return [true, false].map(val => `
+        <button data-truefalse="${val}" data-qindex="${qIndex}" class="p-4 rounded-lg border-2 transition-all ${state.answers[qIndex] === (val + '') || state.answers[qIndex] === val ? 'border-cyan-400 bg-cyan-400/20' : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'}">
+          <div class="text-center">
+            <div class="w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${state.answers[qIndex] === (val + '') || state.answers[qIndex] === val ? 'bg-cyan-400' : 'bg-white/20'}">${val ? '<i data-lucide="check-circle" style="width:20px;height:20px"></i>' : '<i data-lucide="x-circle" style="width:20px;height:20px"></i>'}</div>
+            <span class="text-white font-medium">${val ? 'True' : 'False'}</span>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    if (q.type === 'code-completion') {
+      return `
+        <div>
+          <label class="block text-white/70 text-sm mb-2">Complete the code:</label>
+          <textarea id="code-answer-${qIndex}" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-4 text-green-400 font-mono resize-none focus:border-cyan-400 focus:outline-none" rows="4" placeholder="Type your code here...">${state.answers[qIndex] || ''}</textarea>
+        </div>
+      `;
+    }
+
+    return '';
+  }
+
+  function renderResults() {
+    const r = state.results;
+    if (!r) return '<div class="text-center">No results</div>';
+
+    return `
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-8">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${r.percentage >= 80 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : r.percentage >= 70 ? 'bg-gradient-to-r from-blue-400 to-cyan-500' : r.percentage >= 60 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-gradient-to-r from-red-400 to-pink-500'}">
+          <i data-lucide="award" class="lucide-icon" style="width:36px;height:36px"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-2">Quiz Complete!</h1>
+        <p class="text-white/70">Here are your results and detailed feedback</p>
+      </div>
+
+      <div class="grid md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
+          <div class="text-3xl font-bold text-cyan-400 mb-2">${r.percentage}%</div>
+          <div class="text-white/70">Overall Score</div>
+          <div class="text-2xl font-bold mt-2 ${r.grade === 'A' ? 'text-green-400' : r.grade === 'B' ? 'text-blue-400' : r.grade === 'C' ? 'text-yellow-400' : 'text-red-400'}">Grade: ${r.grade}</div>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
+          <div class="text-3xl font-bold text-green-400 mb-2">${r.correctAnswers}</div>
+          <div class="text-white/70">Correct Answers</div>
+          <div class="text-white/50 text-sm mt-1">out of ${r.totalQuestions}</div>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
+          <div class="text-3xl font-bold text-purple-400 mb-2">${Math.floor(r.timeSpent / 60)}</div>
+          <div class="text-white/70">Minutes Spent</div>
+          <div class="text-white/50 text-sm mt-1">${r.timeSpent % 60}s remaining</div>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
+          <div class="text-3xl font-bold text-blue-400 mb-2">${r.totalScore}</div>
+          <div class="text-white/70">Total Points</div>
+          <div class="text-white/50 text-sm mt-1">out of ${r.maxScore}</div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <h3 class="text-xl font-semibold text-white mb-6">Performance by Topic</h3>
+          <div class="space-y-4">
+            ${r.topicBreakdown.map(topic => `
+              <div class="bg-white/5 rounded-lg p-4 border border-white/20">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-white font-medium">${topic.topic}</h4>
+                  <span class="px-3 py-1 rounded-full text-sm ${topic.percentage >= 80 ? 'bg-green-500/20 text-green-400' : topic.percentage >= 70 ? 'bg-blue-500/20 text-blue-400' : topic.percentage >= 60 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}">${topic.percentage}%</span>
+                </div>
+                <div class="flex items-center justify-between text-sm text-white/70 mb-2"><span>${topic.correct}/${topic.total} correct</span></div>
+                <div class="w-full bg-white/20 rounded-full h-2"><div class="h-2 rounded-full ${topic.percentage >= 80 ? 'bg-green-400' : topic.percentage >= 70 ? 'bg-blue-400' : topic.percentage >= 60 ? 'bg-yellow-400' : 'bg-red-400'}" style="width:${topic.percentage}%"></div></div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <h3 class="text-xl font-semibold text-white mb-6">Answer Distribution</h3>
+          <div class="h-64 mb-4">
+            <canvas id="resultsChart"></canvas>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4 mt-4">
+            <div class="text-center"><div class="w-4 h-4 bg-green-400 rounded mx-auto mb-1"></div><div class="text-white text-sm">Correct</div><div class="text-green-400 font-semibold">${r.correctAnswers}</div></div>
+            <div class="text-center"><div class="w-4 h-4 bg-yellow-400 rounded mx-auto mb-1"></div><div class="text-white text-sm">Partial</div><div class="text-yellow-400 font-semibold">${r.partialCredit}</div></div>
+            <div class="text-center"><div class="w-4 h-4 bg-red-400 rounded mx-auto mb-1"></div><div class="text-white text-sm">Incorrect</div><div class="text-red-400 font-semibold">${r.totalQuestions - r.correctAnswers - r.partialCredit}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
+        <h3 class="text-xl font-semibold text-white mb-6">Question Review</h3>
+        <div class="space-y-6">
+          ${r.detailedResults.map((result, index) => `
+            <div class="bg-white/5 rounded-lg p-6 border border-white/20">
+              <div class="flex items-start gap-4 mb-4">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center ${result.isCorrect ? 'bg-green-500' : result.score > 0 ? 'bg-yellow-500' : 'bg-red-500'}">
+                  ${result.isCorrect ? '<i data-lucide="check-circle" style="width:22px;height:22px"></i>' : result.score > 0 ? '<i data-lucide="alert-circle" style="width:22px;height:22px"></i>' : '<i data-lucide="x-circle" style="width:22px;height:22px"></i>'}
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2"><span class="px-2 py-1 rounded-full text-xs ${result.difficulty === 'beginner' ? 'bg-green-500/20 text-green-400' : result.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}">${result.difficulty}</span><span class="px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">${result.topic}</span><span class="text-white/60 text-sm">${result.score}/${result.maxScore} points</span></div>
+                  <h4 class="text-white font-medium mb-4">${result.question}</h4>
+
+                  <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-black/20 rounded-lg p-4"><h5 class="text-white/70 text-sm mb-2">Your Answer:</h5><div class="${result.isCorrect ? 'text-green-400' : 'text-red-400'}">${renderUserAnswer(result.userAnswer, index)}</div></div>
+                    <div class="bg-black/20 rounded-lg p-4"><h5 class="text-white/70 text-sm mb-2">Correct Answer:</h5><div class="text-green-400">${renderCorrectAnswer(result.correct, index)}</div></div>
+                  </div>
+
+                  <div class="bg-blue-500/20 rounded-lg p-4 border-l-4 border-blue-400"><h5 class="text-blue-400 font-medium mb-2">Explanation:</h5><p class="text-white/80 text-sm">${result.explanation || ''}</p></div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-4">
+        <button data-retake class="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors"><i data-lucide="rotate-ccw" class="lucide-icon" style="width:18px;height:18px"></i>Retake Quiz</button>
+        <button data-download class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors"><i data-lucide="download" class="lucide-icon" style="width:18px;height:18px"></i>Download Results</button>
+        <button data-recs class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors"><i data-lucide="book-open" class="lucide-icon" style="width:18px;height:18px"></i>Study Recommendations</button>
+      </div>
+    </div>
+    `;
+  }
+
+  // --- Rendering helpers ---
+  function escapeHtml(unsafe) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function renderUserAnswer(ans, qIndex) {
+    if (Array.isArray(ans)) return ans.map(i => mockQuestions[qIndex].options[i]).join(', ') || 'Not answered';
+    if (typeof ans === 'number') return mockQuestions[qIndex].options[ans] || 'Not answered';
+    return ans || 'Not answered';
+  }
+
+  function renderCorrectAnswer(correct, qIndex) {
+    if (Array.isArray(correct)) return correct.map(i => mockQuestions[qIndex].options[i]).join(', ');
+    if (typeof correct === 'number') return mockQuestions[qIndex].options[correct];
+    return correct || '';
+  }
+
+  // --- Chart drawing ---
+  function drawResultsChart() {
+    const r = state.results;
+    const ctx = document.getElementById('resultsChart');
+    if (!ctx) return;
+
+    const correct = r.correctAnswers;
+    const partial = r.partialCredit;
+    const incorrect = r.totalQuestions - correct - partial;
+
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(ctx.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Correct','Partial Credit','Incorrect'],
+        datasets: [{ data: [correct, partial, incorrect], backgroundColor: ['#10B981','#F59E0B','#EF4444'] }]
+      },
+      options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } }
+    }
+  });
+  }
+  // --- Event delegation ---
+  function attachEventHandlers() {
+    // clicks
+    root.querySelectorAll('[data-select-quiz]').forEach(el => el.onclick = (e) => {
+      setState({ selectedQuizType: el.dataset.selectQuiz });
+    });
+
+    const startBtn = root.querySelector('#start-quiz');
+    if (startBtn) startBtn.onclick = startQuiz;
+
+    root.querySelectorAll('[data-toggle-hints]').forEach(el => el.onclick = () => setState({ showHints: el.dataset.toggleHints === 'true' }));
+
+    root.querySelectorAll('[data-pause]').forEach(el => el.onclick = togglePause);
+
+    root.querySelectorAll('[data-toggle-flag]').forEach(el => el.onclick = () => toggleFlag(Number(el.dataset.toggleFlag)));
+
+    root.querySelectorAll('[data-next]').forEach(el => el.onclick = () => setState({ currentQuestion: Math.min(mockQuestions.length - 1, state.currentQuestion + 1) }));
+    root.querySelectorAll('[data-prev]').forEach(el => el.onclick = () => setState({ currentQuestion: Math.max(0, state.currentQuestion - 1) }));
+    root.querySelectorAll('[data-submit]').forEach(el => el.onclick = submitQuiz);
+
+    root.querySelectorAll('[data-option-index]').forEach(el => el.onclick = (e) => {
+      const qIndex = Number(el.dataset.qindex);
+      const optIdx = Number(el.dataset.optionIndex);
+      handleAnswer(qIndex, optIdx);
+    });
+
+    root.querySelectorAll('[data-toggle-multi]').forEach(el => el.onclick = () => {
+      const qIndex = Number(el.dataset.qindex);
+      const idx = Number(el.dataset.toggleMulti);
+      const current = state.answers[qIndex] || [];
+      const exists = current.includes(idx);
+      const newArr = exists ? current.filter(i => i !== idx) : [...current, idx];
+      handleAnswer(qIndex, newArr);
+    });
+
+    root.querySelectorAll('[data-truefalse]').forEach(el => el.onclick = () => {
+      const qIndex = Number(el.dataset.qindex);
+      const val = el.dataset.truefalse === 'true';
+      handleAnswer(qIndex, val);
+    });
+
+    // code completion textarea change
+    mockQuestions.forEach((q, idx) => {
+      const textarea = root.querySelector(`#code-answer-${idx}`);
+      if (textarea) textarea.oninput = (e) => handleAnswer(idx, e.target.value);
+    });
+
+    // difficulty select
+    const diff = root.querySelector('#difficulty-select');
+    if (diff) diff.onchange = (e) => setState({ difficulty: e.target.value });
+
+    // pause overlay controls (if present)
+    const pauseOverlay = root.querySelector('[data-resume]');
+
+    // retake
+    root.querySelectorAll('[data-retake]').forEach(el => el.onclick = () => {
+      setState({ quizState: 'setup', currentQuestion: 0, answers: {}, results: null, flaggedQuestions: new Set() });
+    });
+
+    // download results
+    root.querySelectorAll('[data-download]').forEach(el => el.onclick = () => {
+      const blob = new Blob([JSON.stringify(state.results, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'quiz-results.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // study recs
+    root.querySelectorAll('[data-recs]').forEach(el => el.onclick = () => {
+      alert('Study Recommendations:\n\n' + state.results.topicBreakdown.map(t => `${t.topic}: ${t.percentage}% — Focus on core concepts and do targeted practice.`).join('\n'));
+    });
+  }
+
+  // initial render
+  render();
+  </script>
+</body>
+</html>

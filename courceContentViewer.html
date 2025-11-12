@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Content Viewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom CSS to style the volume slider thumb and track */
+    input[type='range']::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: #22d3ee;
+      cursor: pointer;
+      margin-top: -4px;
+    }
+    input[type='range']::-moz-range-thumb {
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: #22d3ee;
+      cursor: pointer;
+    }
+    input[type='range']::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: #ffffff33;
+      border-radius: 9999px;
+    }
+    input[type='range']::-moz-range-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: #ffffff33;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
+
+    <header class="bg-white/10 backdrop-blur-sm border-b border-white/20 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button class="text-white/70 hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-6 w-6"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          </button>
+          <div>
+            <h1 class="text-xl font-bold text-white">React Hooks</h1>
+            <div class="flex items-center gap-4 text-sm text-white/60">
+              <span>by Sayantani Saha</span>
+              <span>•</span>
+              <span>45 minutes</span>
+              <span>•</span>
+              <span class="capitalize">Intermediate</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="bookmark-btn" class="transition-colors text-white/70 hover:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bookmark h-6 w-6"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+          </button>
+          <button id="like-btn" class="flex items-center gap-1 transition-colors text-white/70 hover:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-up h-5 w-5"><path d="M7 10v12c0 1.1.9 2 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 1 2-2h3c1.1 0 2-.9 2-2v-7a2 2 0 0 0-2-2h-8.35a2 2 0 0 1-1.95-1.5L9 2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h2v6z"/><path d="M10 2v12"/></svg>
+            <span id="likes-count" class="text-sm">847</span>
+          </button>
+          <button class="text-white/70 hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share-2 h-6 w-6"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.42"/><path d="m8.59 10.49 6.83-3.42"/></svg>
+          </button>
+          <button class="text-white/70 hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-vertical h-6 w-6"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 flex">
+      <div class="flex-1 flex flex-col">
+        <div class="p-6 pb-4">
+          <div class="relative bg-black rounded-lg overflow-hidden group">
+            <div class="aspect-video relative">
+              <img src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=450&fit=crop" alt="React Hooks Deep Dive" class="w-full h-full object-cover"/>
+              
+              <div class="absolute inset-0 flex items-center justify-center bg-black/20">
+                <button id="play-pause-overlay-btn" class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                  <svg id="play-icon-overlay" class="h-10 w-10 text-white ml-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <svg id="pause-icon-overlay" class="h-10 w-10 text-white ml-1 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+              </div>
+
+              <div id="subtitles-box" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 hidden">
+                <div class="bg-black/70 text-white px-4 py-2 rounded text-center">
+                  Understanding the useEffect hook and its dependencies...
+                </div>
+              </div>
+
+              <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="mb-4">
+                  <div class="w-full bg-white/20 rounded-full h-1 cursor-pointer">
+                    <div id="progress-bar" class="bg-cyan-400 h-1 rounded-full relative" style="width: 0%;">
+                      <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-cyan-400 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <button id="play-pause-btn" class="text-white hover:text-cyan-400 transition-colors">
+                      <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-6 w-6"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause h-6 w-6 hidden"><rect width="4" height="16" x="6" y="4"/><rect width="4" height="16" x="14" y="4"/></svg>
+                    </button>
+                    <button class="text-white hover:text-cyan-400 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back h-5 w-5"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></svg>
+                    </button>
+                    <button class="text-white hover:text-cyan-400 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward h-5 w-5"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+                    </button>
+                    <div class="flex items-center gap-2">
+                      <button id="mute-btn" class="text-white hover:text-cyan-400 transition-colors">
+                        <svg id="volume-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-2 h-5 w-5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                        <svg id="mute-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-x h-5 w-5 hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>
+                      </button>
+                      <input id="volume-slider" type="range" min="0" max="1" step="0.1" value="1" class="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer"/>
+                    </div>
+                    <span id="time-display" class="text-white text-sm">0:00 / 05:00</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <select id="playback-speed-select" class="bg-black/50 text-white text-sm rounded px-2 py-1 border border-white/20">
+                      <option value="0.5">0.5x</option>
+                      <option value="0.75">0.75x</option>
+                      <option value="1">1x</option>
+                      <option value="1.25">1.25x</option>
+                      <option value="1.5">1.5x</option>
+                      <option value="2">2x</option>
+                    </select>
+                    <button id="subtitles-btn" class="transition-colors text-cyan-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-subtitles h-5 w-5"><path d="M18 10a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2z"/><path d="m18 16 4 4"/><path d="m18 8 4-4"/></svg>
+                    </button>
+                    <button class="text-white hover:text-cyan-400 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings h-5 w-5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.39a2 2 0 0 0 .73 2.73l.15.08a2 2 0 0 1 1 1.74v.44a2 2 0 0 1-1 1.74l-.15.08a2 2 0 0 0-.73 2.73l.22.39a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.44a2 2 0 0 1 1-1.74l.15-.08a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                    <button class="text-white hover:text-cyan-400 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize h-5 w-5"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6">
+          <div class="flex border-b border-white/20">
+            <button id="overview-tab" class="px-4 py-3 text-sm font-medium transition-colors text-cyan-400 border-b-2 border-cyan-400">Overview</button>
+            <button id="transcript-tab" class="px-4 py-3 text-sm font-medium transition-colors text-white/70 hover:text-white">Transcript</button>
+            <button id="comments-tab" class="px-4 py-3 text-sm font-medium transition-colors text-white/70 hover:text-white">Comments (<span id="comments-count">3</span>)</button>
+          </div>
+        </div>
+
+        <div class="flex-1 p-6">
+          <div id="overview-content" class="space-y-6">
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">About this lesson</h3>
+              <p class="text-white/70 leading-relaxed">Master React Hooks with practical examples and advanced patterns. Learn useState, useEffect, useContext, and custom hooks.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="bg-white/10 rounded-lg p-4 border border-white/20">
+                <div class="text-2xl font-bold text-cyan-400 mb-1">12.5K</div>
+                <div class="text-white/60 text-sm">Total Views</div>
+              </div>
+              <div class="bg-white/10 rounded-lg p-4 border border-white/20">
+                <div id="likes-display" class="text-2xl font-bold text-green-400 mb-1">847</div>
+                <div class="text-white/60 text-sm">Likes</div>
+              </div>
+              <div class="bg-white/10 rounded-lg p-4 border border-white/20">
+                <div class="text-2xl font-bold text-purple-400 mb-1">3.2K students</div>
+                <div class="text-white/60 text-sm">Students Enrolled</div>
+              </div>
+            </div>
+            <div class="bg-white/10 rounded-lg p-6 border border-white/20">
+              <h4 class="text-white font-semibold mb-4">About the Instructor</h4>
+              <div class="flex items-center gap-4">
+                <img src="https://images.unsplash.com/photo-1494790108755-2616b9d8c5cc?w=60&h=60&fit=crop&crop=face" alt="Sayantani Saha" class="w-15 h-15 rounded-full"/>
+                <div>
+                  <h5 class="text-white font-medium">Sayanani Saha</h5>
+                  <p class="text-white/60 text-sm">Senior Frontend Developer</p>
+                  <p class="text-white/60 text-sm">5+ years of React experience</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="transcript-content" class="space-y-4 hidden">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl font-semibold text-white">Video Transcript</h3>
+              <select id="language-select" class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm">
+                <option value="en">English</option>
+               
+              </select>
+            </div>
+            <div class="bg-white/5 rounded-lg p-6 border border-white/20 max-h-96 overflow-y-auto">
+              <div class="space-y-4 text-white/80 text-sm leading-relaxed">
+                <p><span class="text-cyan-400 font-mono">[00:00]</span> Welcome to this comprehensive guide on React Hooks. In this lesson, we'll dive deep into the useEffect hook and understand how it works.</p>
+                <p><span class="text-cyan-400 font-mono">[00:15]</span> The useEffect hook is one of the most important hooks in React. It allows us to perform side effects in functional components.</p>
+                <p><span class="text-cyan-400 font-mono">[00:30]</span> Let's start by understanding what side effects are and why we need them in our React applications...</p>
+                <p><span class="text-cyan-400 font-mono">[01:00]</span> Here's a practical example of how to use useEffect to fetch data from an API...</p>
+              </div>
+            </div>
+          </div>
+          <div id="comments-content" class="space-y-6 hidden">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl font-semibold text-white">Comments</h3>
+              <button class="text-cyan-400 hover:text-cyan-300 text-sm font-medium">Sort by Latest</button>
+            </div>
+            <div class="bg-white/10 rounded-lg p-4 border border-white/20">
+              <textarea placeholder="Add a comment..." class="w-full bg-transparent border-none text-white placeholder-white/50 resize-none focus:outline-none" rows="3"></textarea>
+              <div class="flex justify-end mt-3">
+                <button class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">Post Comment</button>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="bg-white/5 rounded-lg p-4 border border-white/20">
+                <div class="flex items-start gap-3">
+                  <img src="photos/1000308556.jpg" alt="Nityananda Dewan" class="w-10 h-10 rounded-full"/>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                      <h4 class="text-white font-medium">Nityananda Dewan</h4>
+                      <span class="text-white/50 text-xs">2 hours ago</span>
+                    </div>
+                    <p class="text-white/80 text-sm mb-3">Great explanation of useEffect! The cleanup function part really helped me understand memory leaks.</p>
+                    <div class="flex items-center gap-4">
+                      <button class="flex items-center gap-1 text-white/60 hover:text-white text-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-up h-3 w-3"><path d="M7 10v12c0 1.1.9 2 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 1 2-2h3c1.1 0 2-.9 2-2v-7a2 2 0 0 0-2-2h-8.35a2 2 0 0 1-1.95-1.5L9 2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h2v6z"/><path d="M10 2v12"/></svg>
+                        23
+                      </button>
+                      <button class="text-white/60 hover:text-white text-xs">Reply</button>
+                      <button class="text-cyan-400 text-xs">3 replies</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-white/5 rounded-lg p-4 border border-white/20">
+                <div class="flex items-start gap-3">
+                  <img src="" alt="Dukhit Mandi" class="w-10 h-10 rounded-full"/>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                      <h4 class="text-white font-medium">Dukhit Mandi</h4>
+                      <span class="text-white/50 text-xs">5 hours ago</span>
+                    </div>
+                    <p class="text-white/80 text-sm mb-3">Could you show more examples of custom hooks? I'm still struggling with the concept.</p>
+                    <div class="flex items-center gap-4">
+                      <button class="flex items-center gap-1 text-white/60 hover:text-white text-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-up h-3 w-3"><path d="M7 10v12c0 1.1.9 2 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 1 2-2h3c1.1 0 2-.9 2-2v-7a2 2 0 0 0-2-2h-8.35a2 2 0 0 1-1.95-1.5L9 2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h2v6z"/><path d="M10 2v12"/></svg>
+                        15
+                      </button>
+                      <button class="text-white/60 hover:text-white text-xs">Reply</button>
+                      <button class="text-cyan-400 text-xs">1 replies</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-white/5 rounded-lg p-4 border border-white/20">
+                <div class="flex items-start gap-3">
+                  <img src="" alt="Mossiyar Rahaman" class="w-10 h-10 rounded-full"/>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                      <h4 class="text-white font-medium">Mossiyar Rahaman</h4>
+                      <span class="text-white/50 text-xs">1 day ago</span>
+                    </div>
+                    <p class="text-white/80 text-sm mb-3">This series is amazing! Best React tutorial I've found. Thank you Sarah! 🙏</p>
+                    <div class="flex items-center gap-4">
+                      <button class="flex items-center gap-1 text-white/60 hover:text-white text-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thumbs-up h-3 w-3"><path d="M7 10v12c0 1.1.9 2 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 1 2-2h3c1.1 0 2-.9 2-2v-7a2 2 0 0 0-2-2h-8.35a2 2 0 0 1-1.95-1.5L9 2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h2v6z"/><path d="M10 2v12"/></svg>
+                        42
+                      </button>
+                      <button class="text-white/60 hover:text-white text-xs">Reply</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-80 bg-white/5 backdrop-blur-sm border-l border-white/20 flex flex-col">
+        <div class="flex border-b border-white/20">
+          <button id="sidebar-content-tab" class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-cyan-400 border-b-2 border-cyan-400">Content</button>
+          <button id="sidebar-notes-tab" class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-white/70 hover:text-white">Notes</button>
+          <button id="sidebar-resources-tab" class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-white/70 hover:text-white">Resources</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+          <div id="sidebar-content-view" class="p-4">
+            <h3 class="text-white font-semibold mb-4">Course Content</h3>
+            <div class="space-y-2">
+              <div class="p-3 rounded-lg border cursor-pointer transition-all bg-green-400/10 border-green-400/30 text-white/80">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle h-5 w-5 text-green-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.5"/><path d="M22 4 12 14.01l-3-3"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-medium text-sm">Introduction to React Hooks</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs text-white/60">8:30</span>
+                      <span class="text-xs px-2 py-1 bg-white/10 rounded capitalize">video</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs text-white/60 ml-8">Understanding the basics of React Hooks and why they were introduced.</p>
+              </div>
+              <div class="p-3 rounded-lg border cursor-pointer transition-all bg-green-400/10 border-green-400/30 text-white/80">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle h-5 w-5 text-green-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.5"/><path d="M22 4 12 14.01l-3-3"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-medium text-sm">useState Hook Deep Dive</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs text-white/60">12:15</span>
+                      <span class="text-xs px-2 py-1 bg-white/10 rounded capitalize">video</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs text-white/60 ml-8">Advanced useState patterns and best practices.</p>
+              </div>
+              <div class="p-3 rounded-lg border cursor-pointer transition-all bg-cyan-400/20 border-cyan-400/50 text-white">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play-circle h-5 w-5 text-cyan-400"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-medium text-sm">useEffect Hook Masterclass</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs text-white/60">15:45</span>
+                      <span class="text-xs px-2 py-1 bg-white/10 rounded capitalize">video</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs text-white/60 ml-8">Side effects, cleanup, and dependency arrays explained.</p>
+              </div>
+              <div class="p-3 rounded-lg border cursor-pointer transition-all bg-white/5 border-white/20 text-white/70 hover:bg-white/10">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle h-5 w-5 text-white/40"><circle cx="12" cy="12" r="10"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-medium text-sm">Custom Hooks Workshop</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs text-white/60">18:20</span>
+                      <span class="text-xs px-2 py-1 bg-white/10 rounded capitalize">video</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs text-white/60 ml-8">Creating reusable custom hooks for your applications.</p>
+              </div>
+              <div class="p-3 rounded-lg border cursor-pointer transition-all bg-white/5 border-white/20 text-white/70 hover:bg-white/10">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit-3 h-5 w-5 text-white/40"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-medium text-sm">Practice Exercise</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs text-white/60">20 min</span>
+                      <span class="text-xs px-2 py-1 bg-white/10 rounded capitalize">exercise</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs text-white/60 ml-8">Build a todo app using React Hooks.</p>
+              </div>
+              <div class="p-3 rounded-lg border cursor-pointer transition-all bg-white/5 border-white/20 text-white/70 hover:bg-white/10">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle h-5 w-5 text-white/40"><circle cx="12" cy="12" r="10"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-medium text-sm">Knowledge Check Quiz</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs text-white/60">10 min</span>
+                      <span class="text-xs px-2 py-1 bg-white/10 rounded capitalize">quiz</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs text-white/60 ml-8">Test your understanding of React Hooks.</p>
+              </div>
+            </div>
+          </div>
+          <div id="sidebar-notes-view" class="h-full flex flex-col hidden">
+            <div class="flex items-center justify-between p-4 border-b border-white/20">
+              <h3 class="text-white font-semibold">My Notes</h3>
+              <button id="notes-edit-btn" class="text-cyan-400 hover:text-cyan-300 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit-3 h-5 w-5"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
+            </div>
+            <div class="flex-1 p-4">
+              <textarea id="notes-textarea" placeholder="Take notes during the lesson..." class="w-full h-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/50 resize-none focus:border-cyan-400 focus:outline-none hidden"></textarea>
+              <div id="notes-display" class="text-white/70 whitespace-pre-wrap">Click the edit button to start taking notes...</div>
+            </div>
+          </div>
+          <div id="sidebar-resources-view" class="p-4 hidden">
+            <h3 class="text-white font-semibold mb-4">Resources</h3>
+            <div class="space-y-3">
+              <div class="bg-white/10 rounded-lg p-3 border border-white/20 hover:bg-white/15 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text h-5 w-5 text-cyan-400"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L15 2z"/><path d="M14 2v6h6"/><path d="M10 12H8"/><path d="M16 16h-6"/><path d="M16 12h-6"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-white font-medium text-sm">React Hooks Cheat Sheet</h4>
+                    <p class="text-white/60 text-xs">2.3 MB</p>
+                  </div>
+                  <button class="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="bg-white/10 rounded-lg p-3 border border-white/20 hover:bg-white/15 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-5 w-5 text-cyan-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-white font-medium text-sm">Code Examples</h4>
+                    <p class="text-white/60 text-xs">856 KB</p>
+                  </div>
+                  <button class="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="bg-white/10 rounded-lg p-3 border border-white/20 hover:bg-white/15 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-5 w-5 text-cyan-400"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-white font-medium text-sm">Slides Presentation</h4>
+                    <p class="text-white/60 text-xs">4.1 MB</p>
+                  </div>
+                  <button class="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="bg-white/10 rounded-lg p-3 border border-white/20 hover:bg-white/15 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe h-5 w-5 text-cyan-400"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-white font-medium text-sm">Additional Reading</h4>
+                    <p class="text-white/60 text-xs">External</p>
+                  </div>
+                  <button class="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Data
+      const courseData = {
+        title: "React Hooks Deep Dive",
+        instructor: "Sarah Johnson",
+        duration: "45 minutes",
+        description: "Master React Hooks with practical examples and advanced patterns. Learn useState, useEffect, useContext, and custom hooks.",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=450&fit=crop",
+        difficulty: "Intermediate",
+        category: "Frontend Development",
+        views: "12.5K",
+        likes: 847,
+        enrolled: "3.2K students"
+      };
+      
+      const comments = [
+        { id: 1, user: "Michael Chen", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face", time: "2 hours ago", text: "Great explanation of useEffect! The cleanup function part really helped me understand memory leaks.", likes: 23, replies: 3 },
+        { id: 2, user: "Emma Wilson", avatar: "https://images.unsplash.com/photo-1494790108755-2616b9d8c5cc?w=40&h=40&fit=crop&crop=face", time: "5 hours ago", text: "Could you show more examples of custom hooks? I'm still struggling with the concept.", likes: 15, replies: 1 },
+        { id: 3, user: "David Kumar", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face", time: "1 day ago", text: "This series is amazing! Best React tutorial I've found. Thank you Sarah! 🙏", likes: 42, replies: 0 }
+      ];
+
+      // State variables
+      let isPlaying = false;
+      let currentTime = 0;
+      let duration = 300; // 5 minutes mock
+      let isMuted = false;
+      let volume = 1;
+      let bookmarked = false;
+      let liked = false;
+      let notes = '';
+      let isEditingNotes = false;
+
+      // DOM Elements
+      const playPauseBtn = document.getElementById('play-pause-btn');
+      const playPauseOverlayBtn = document.getElementById('play-pause-overlay-btn');
+      const playIcon = document.getElementById('play-icon');
+      const pauseIcon = document.getElementById('pause-icon');
+      const playIconOverlay = document.getElementById('play-icon-overlay');
+      const pauseIconOverlay = document.getElementById('pause-icon-overlay');
+      const muteBtn = document.getElementById('mute-btn');
+      const volumeIcon = document.querySelector('#mute-btn .lucide-volume-2');
+      const muteIcon = document.querySelector('#mute-btn .lucide-volume-x');
+      const volumeSlider = document.getElementById('volume-slider');
+      const timeDisplay = document.getElementById('time-display');
+      const progressBar = document.getElementById('progress-bar');
+      const subtitlesBtn = document.getElementById('subtitles-btn');
+      const subtitlesBox = document.getElementById('subtitles-box');
+      const bookmarkBtn = document.getElementById('bookmark-btn');
+      const likeBtn = document.getElementById('like-btn');
+      const likesCount = document.getElementById('likes-count');
+      const likesDisplay = document.getElementById('likes-display');
+      const notesEditBtn = document.getElementById('notes-edit-btn');
+      const notesTextarea = document.getElementById('notes-textarea');
+      const notesDisplay = document.getElementById('notes-display');
+
+      // Functions
+      const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      };
+
+      const updateTimeDisplay = () => {
+        timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+        const progressPercentage = (currentTime / duration) * 100;
+        progressBar.style.width = `${progressPercentage}%`;
+      };
+
+      const togglePlayPause = () => {
+        isPlaying = !isPlaying;
+        if (isPlaying) {
+          playIcon.classList.add('hidden');
+          pauseIcon.classList.remove('hidden');
+          playIconOverlay.classList.add('hidden');
+          pauseIconOverlay.classList.remove('hidden');
+          // Start a timer to simulate playback
+          window.playInterval = setInterval(() => {
+            if (isPlaying && currentTime < duration) {
+              currentTime++;
+              updateTimeDisplay();
+            } else if (currentTime >= duration) {
+              clearInterval(window.playInterval);
+              isPlaying = false;
+              playIcon.classList.remove('hidden');
+              pauseIcon.classList.add('hidden');
+              playIconOverlay.classList.remove('hidden');
+              pauseIconOverlay.classList.add('hidden');
+            }
+          }, 1000);
+        } else {
+          clearInterval(window.playInterval);
+          playIcon.classList.remove('hidden');
+          pauseIcon.classList.add('hidden');
+          playIconOverlay.classList.remove('hidden');
+          pauseIconOverlay.classList.add('hidden');
+        }
+      };
+
+      const toggleMute = () => {
+        isMuted = !isMuted;
+        if (isMuted) {
+          volumeIcon.classList.add('hidden');
+          muteIcon.classList.remove('hidden');
+          volumeSlider.value = 0;
+        } else {
+          volumeIcon.classList.remove('hidden');
+          muteIcon.classList.add('hidden');
+          volumeSlider.value = volume;
+        }
+      };
+
+      const toggleSubtitles = () => {
+        subtitlesBox.classList.toggle('hidden');
+        subtitlesBtn.classList.toggle('text-white');
+        subtitlesBtn.classList.toggle('text-cyan-400');
+      };
+      
+      const toggleBookmark = () => {
+        bookmarked = !bookmarked;
+        const bookmarkIcon = bookmarkBtn.querySelector('svg');
+        if (bookmarked) {
+          bookmarkIcon.setAttribute('fill', 'currentColor');
+          bookmarkBtn.classList.remove('text-white/70', 'hover:text-white');
+          bookmarkBtn.classList.add('text-yellow-400');
+        } else {
+          bookmarkIcon.setAttribute('fill', 'none');
+          bookmarkBtn.classList.remove('text-yellow-400');
+          bookmarkBtn.classList.add('text-white/70', 'hover:text-white');
+        }
+      };
+      
+      const toggleLike = () => {
+        liked = !liked;
+        const likes = liked ? courseData.likes + 1 : courseData.likes;
+        const thumbsUpIcon = likeBtn.querySelector('svg');
+        if (liked) {
+          thumbsUpIcon.setAttribute('fill', 'currentColor');
+          likeBtn.classList.remove('text-white/70', 'hover:text-white');
+          likeBtn.classList.add('text-red-400');
+        } else {
+          thumbsUpIcon.setAttribute('fill', 'none');
+          likeBtn.classList.remove('text-red-400');
+          likeBtn.classList.add('text-white/70', 'hover:text-white');
+        }
+        likesCount.textContent = likes;
+        likesDisplay.textContent = likes;
+      };
+
+      const toggleNotes = () => {
+        isEditingNotes = !isEditingNotes;
+        if (isEditingNotes) {
+          notesEditBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save h-5 w-5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><path d="M7 3v5h8"/></svg>`;
+          notesTextarea.classList.remove('hidden');
+          notesDisplay.classList.add('hidden');
+          notesTextarea.focus();
+        } else {
+          notesEditBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit-3 h-5 w-5"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+          notesTextarea.classList.add('hidden');
+          notesDisplay.classList.remove('hidden');
+          notesDisplay.textContent = notesTextarea.value || 'Click the edit button to start taking notes...';
+          notes = notesTextarea.value;
+        }
+      };
+
+      const switchMainTab = (tabId) => {
+        const tabs = ['overview', 'transcript', 'comments'];
+        tabs.forEach(tab => {
+          document.getElementById(`${tab}-tab`).classList.remove('text-cyan-400', 'border-b-2', 'border-cyan-400');
+          document.getElementById(`${tab}-tab`).classList.add('text-white/70', 'hover:text-white');
+          document.getElementById(`${tab}-content`).classList.add('hidden');
+        });
+        document.getElementById(`${tabId}-tab`).classList.add('text-cyan-400', 'border-b-2', 'border-cyan-400');
+        document.getElementById(`${tabId}-tab`).classList.remove('text-white/70', 'hover:text-white');
+        document.getElementById(`${tabId}-content`).classList.remove('hidden');
+      };
+
+      const switchSidebarTab = (tabId) => {
+        const tabs = ['content', 'notes', 'resources'];
+        tabs.forEach(tab => {
+          document.getElementById(`sidebar-${tab}-tab`).classList.remove('text-cyan-400', 'border-b-2', 'border-cyan-400');
+          document.getElementById(`sidebar-${tab}-tab`).classList.add('text-white/70', 'hover:text-white');
+          document.getElementById(`sidebar-${tab}-view`).classList.add('hidden');
+        });
+        document.getElementById(`sidebar-${tabId}-tab`).classList.add('text-cyan-400', 'border-b-2', 'border-cyan-400');
+        document.getElementById(`sidebar-${tabId}-tab`).classList.remove('text-white/70', 'hover:text-white');
+        document.getElementById(`sidebar-${tabId}-view`).classList.remove('hidden');
+      };
+
+      // Event Listeners
+      playPauseBtn.addEventListener('click', togglePlayPause);
+      playPauseOverlayBtn.addEventListener('click', togglePlayPause);
+      muteBtn.addEventListener('click', toggleMute);
+      subtitlesBtn.addEventListener('click', toggleSubtitles);
+      bookmarkBtn.addEventListener('click', toggleBookmark);
+      likeBtn.addEventListener('click', toggleLike);
+      notesEditBtn.addEventListener('click', toggleNotes);
+      document.getElementById('overview-tab').addEventListener('click', () => switchMainTab('overview'));
+      document.getElementById('transcript-tab').addEventListener('click', () => switchMainTab('transcript'));
+      document.getElementById('comments-tab').addEventListener('click', () => switchMainTab('comments'));
+      document.getElementById('sidebar-content-tab').addEventListener('click', () => switchSidebarTab('content'));
+      document.getElementById('sidebar-notes-tab').addEventListener('click', () => switchSidebarTab('notes'));
+      document.getElementById('sidebar-resources-tab').addEventListener('click', () => switchSidebarTab('resources'));
+    });
+  </script>
+</body>
+</html>

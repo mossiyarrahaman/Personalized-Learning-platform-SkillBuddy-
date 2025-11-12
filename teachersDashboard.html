@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Teacher Dashboard — Single File (Tailwind + JS)</title>
+
+  <!-- Tailwind (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide icons (auto-replaced) -->
+  <script src="https://unpkg.com/lucide@latest/dist/lucide.min.js"></script>
+
+  <!-- Chart.js for charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Small custom tweaks */
+    .glass { background: rgba(255,255,255,0.04);
+       backdrop-filter: blur(6px); 
+      }
+    .card-border { 
+      border: 1px solid rgba(255,255,255,0.08); 
+    }
+    /* Make Chart canvases fill their parent height */
+    .chart-wrap { 
+      height: 320px;
+     }
+    /* Modal scroll area */
+    .modal-body {
+       max-height: calc(90vh - 160px); overflow-y: auto; 
+      }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+  <div id="app">
+    <!-- Header -->
+    <header class="glass card-border px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <img id="teacherAvatar" src="" alt="Teacher" class="w-12 h-12 rounded-full" />
+          <div>
+            <h1 id="teacherName" class="text-xl font-bold"></h1>
+            <p id="teacherTitle" class="text-white/60 text-sm"></p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <select id="classSelect" class="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"></select>
+
+          <button class="relative text-white/70 hover:text-white transition-colors">
+            <i data-lucide="bell" class="h-6 w-6"></i>
+            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white text-[10px]">5</span>
+          </button>
+
+          <button class="text-white/70 hover:text-white transition-colors">
+            <i data-lucide="message-circle" class="h-6 w-6"></i>
+          </button>
+
+          <button class="text-white/70 hover:text-white transition-colors">
+            <i data-lucide="settings" class="h-6 w-6"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="border-b border-white/20 px-6">
+      <div class="flex gap-8">
+        <button data-tab="overview" class="tab-btn py-4 px-2 border-b-2 font-medium transition-colors border-cyan-400 text-cyan-400">Overview</button>
+        <button data-tab="students" class="tab-btn py-4 px-2 border-b-2 font-medium transition-colors text-white/70">Students</button>
+        <button data-tab="analytics" class="tab-btn py-4 px-2 border-b-2 font-medium transition-colors text-white/70">Analytics</button>
+        <button data-tab="content" class="tab-btn py-4 px-2 border-b-2 font-medium transition-colors text-white/70">Content</button>
+        <button data-tab="messages" class="tab-btn py-4 px-2 border-b-2 font-medium transition-colors text-white/70">Messages</button>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <main class="p-6">
+      <!-- OVERVIEW -->
+      <section id="overview" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="rounded-xl p-6 glass card-border">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                <i data-lucide="users" class="h-6 w-6 text-white"></i>
+              </div>
+              <div class="flex items-center gap-1 text-sm text-green-400">
+                <i data-lucide="arrow-up" class="h-4 w-4"></i>
+                <span>+12%</span>
+              </div>
+            </div>
+            <div id="totalStudents" class="text-2xl font-bold text-white mb-1">0</div>
+            <div class="text-white/60 text-sm">Total Students</div>
+          </div>
+
+          <div class="rounded-xl p-6 glass card-border">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                <i data-lucide="book-open" class="h-6 w-6 text-white"></i>
+              </div>
+              <div class="flex items-center gap-1 text-sm text-green-400">
+                <i data-lucide="arrow-up" class="h-4 w-4"></i>
+                <span>+3</span>
+              </div>
+            </div>
+            <div id="activeCourses" class="text-2xl font-bold text-white mb-1">0</div>
+            <div class="text-white/60 text-sm">Active Courses</div>
+          </div>
+
+          <div class="rounded-xl p-6 glass card-border">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                <i data-lucide="star" class="h-6 w-6 text-white"></i>
+              </div>
+              <div class="flex items-center gap-1 text-sm text-green-400">
+                <i data-lucide="arrow-up" class="h-4 w-4"></i>
+                <span>+0.2</span>
+              </div>
+            </div>
+            <div id="avgRating" class="text-2xl font-bold text-white mb-1">0</div>
+            <div class="text-white/60 text-sm">Average Rating</div>
+          </div>
+
+          <div class="rounded-xl p-6 glass card-border">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <i data-lucide="award" class="h-6 w-6 text-white"></i>
+              </div>
+              <div class="flex items-center gap-1 text-sm text-green-400">
+                <i data-lucide="arrow-up" class="h-4 w-4"></i>
+                <span>+2</span>
+              </div>
+            </div>
+            <div id="completedCourses" class="text-2xl font-bold text-white mb-1">0</div>
+            <div class="text-white/60 text-sm">Completed Courses</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div class="rounded-xl p-6 glass card-border">
+            <h3 class="text-xl font-semibold text-white mb-6">Class Progress Overview</h3>
+            <div class="chart-wrap">
+              <canvas id="classProgressChart"></canvas>
+            </div>
+          </div>
+
+          <div class="rounded-xl p-6 glass card-border">
+            <h3 class="text-xl font-semibold text-white mb-6">Student Engagement</h3>
+            <div class="chart-wrap">
+              <canvas id="engagementChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active classes -->
+        <div class="rounded-xl p-6 glass card-border">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold">Active Classes</h3>
+            <button id="newClassBtn" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i data-lucide="plus" class="h-4 w-4"></i>
+              New Class
+            </button>
+          </div>
+
+          <div id="activeClassesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="rounded-xl p-6 glass card-border">
+          <h3 class="text-xl font-semibold text-white mb-6">Recent Activity</h3>
+          <div id="recentActivityContainer" class="space-y-4"></div>
+        </div>
+      </section>
+
+      <!-- STUDENTS -->
+      <section id="students" class="space-y-6 hidden">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white">Student Management</h2>
+            <p class="text-white/70">Monitor and support your students' learning journey</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/50"></i>
+              <input id="studentSearch" type="text" placeholder="Search students..." class="bg-white/10 border border-white/20 rounded-lg pl-10 pr-4 py-2 text-white placeholder-white/50 focus:border-cyan-400 focus:outline-none" />
+            </div>
+            <select id="studentSort" class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm">
+              <option value="progress">Sort by Progress</option>
+              <option value="score">Sort by Score</option>
+              <option value="name">Sort by Name</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="rounded-lg p-4 bg-green-500/20 card-border">
+            <div id="activeCount" class="text-2xl font-bold text-green-400 mb-1">0</div>
+            <div class="text-white/70 text-sm">Active Students</div>
+          </div>
+          <div class="rounded-lg p-4 bg-red-500/20 card-border">
+            <div id="atRiskCount" class="text-2xl font-bold text-red-400 mb-1">0</div>
+            <div class="text-white/70 text-sm">At Risk</div>
+          </div>
+          <div class="rounded-lg p-4 bg-gray-500/20 card-border">
+            <div id="inactiveCount" class="text-2xl font-bold text-gray-400 mb-1">0</div>
+            <div class="text-white/70 text-sm">Inactive</div>
+          </div>
+          <div class="rounded-lg p-4 bg-blue-500/20 card-border">
+            <div id="classAverage" class="text-2xl font-bold text-blue-400 mb-1">0%</div>
+            <div class="text-white/70 text-sm">Class Average</div>
+          </div>
+        </div>
+
+        <!-- students list -->
+        <div class="rounded-xl p-6 glass card-border">
+          <div id="studentsList" class="space-y-4"></div>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section id="analytics" class="space-y-6 hidden">
+        <div class="rounded-xl p-6 glass card-border">
+          <h3 class="text-xl font-semibold text-white mb-6">Topic Difficulty Analysis</h3>
+          <div id="difficultyList" class="space-y-4"></div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div class="rounded-xl p-6 glass card-border">
+            <h3 class="text-xl font-semibold text-white mb-6">Weekly Engagement</h3>
+            <div class="chart-wrap">
+              <canvas id="weeklyEngagementChart"></canvas>
+            </div>
+          </div>
+
+          <div class="rounded-xl p-6 glass card-border">
+            <h3 class="text-xl font-semibold text-white mb-6">Performance Distribution</h3>
+            <div id="performanceDistribution" class="space-y-4"></div>
+          </div>
+        </div>
+
+        <div class="rounded-xl p-6 glass card-border">
+          <h3 class="text-xl font-semibold text-white mb-6">Teaching Insights & Recommendations</h3>
+          <div class="space-y-4">
+            <div class="bg-gradient-to-r from-red-500/20 to-pink-500/20 rounded-lg p-4 card-border">
+              <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="alert-triangle" class="h-5 w-5 text-red-400"></i>
+                <span class="text-red-400 font-medium">Attention Needed</span>
+              </div>
+              <p class="text-white/80 text-sm mb-2">49% of students are struggling with State Management. Consider adding more practical examples and interactive exercises.</p>
+              <button class="text-red-400 hover:text-red-300 text-sm font-medium">Create Remedial Content →</button>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg p-4 card-border">
+              <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="trending-up" class="h-5 w-5 text-blue-400"></i>
+                <span class="text-blue-400 font-medium">Engagement Opportunity</span>
+              </div>
+              <p class="text-white/80 text-sm mb-2">Student engagement drops 22% on weekends. Consider scheduling live sessions or gamified challenges for Saturday/Sunday.</p>
+              <button class="text-blue-400 hover:text-blue-300 text-sm font-medium">Schedule Weekend Activity →</button>
+            </div>
+
+            <div class="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg p-4 card-border">
+              <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="brain" class="h-5 w-5 text-green-400"></i>
+                <span class="text-green-400 font-medium">Success Pattern</span>
+              </div>
+              <p class="text-white/80 text-sm mb-2">Students who complete hands-on exercises score 23% higher. Current completion rate: 76%. Target: 85%+</p>
+              <button class="text-green-400 hover:text-green-300 text-sm font-medium">Boost Exercise Participation →</button>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-lg p-4 card-border">
+              <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="target" class="h-5 w-5 text-purple-400"></i>
+                <span class="text-purple-400 font-medium">Individual Support</span>
+              </div>
+              <p class="text-white/80 text-sm mb-2">David Kumar and 2 other students need immediate intervention. They've been inactive for 48+ hours with low engagement scores.</p>
+              <button class="text-purple-400 hover:text-purple-300 text-sm font-medium">Send Check-in Message →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTENT (placeholder) -->
+      <section id="content" class="text-center py-12 hidden">
+        <i data-lucide="book-open" class="h-16 w-16 text-white/40 mx-auto mb-4"></i>
+        <h3 class="text-xl text-white/70 mb-2">Content Management</h3>
+        <p class="text-white/50">Create and manage your course materials, assignments, and resources.</p>
+        <button class="mt-4 bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-lg transition-colors">Coming Soon</button>
+      </section>
+
+      <!-- MESSAGES (placeholder) -->
+      <section id="messages" class="text-center py-12 hidden">
+        <i data-lucide="message-circle" class="h-16 w-16 text-white/40 mx-auto mb-4"></i>
+        <h3 class="text-xl text-white/70 mb-2">Messages & Communication</h3>
+        <p class="text-white/50">Communicate with your students, send announcements, and manage discussions.</p>
+        <button class="mt-4 bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-lg transition-colors">Coming Soon</button>
+      </section>
+    </main>
+
+    <!-- Student modal -->
+    <div id="studentModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-slate-900 rounded-xl border border-white/20 w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-white/20 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <img id="modalAvatar" src="" alt="" class="w-16 h-16 rounded-full" />
+            <div>
+              <h3 id="modalName" class="text-xl font-bold text-white"></h3>
+              <p id="modalEmail" class="text-white/60"></p>
+              <div id="modalStatus" class="mt-2"></div>
+            </div>
+          </div>
+          <button id="closeModalBtn" class="text-white/60 hover:text-white"><i data-lucide="x-circle" class="h-6 w-6"></i></button>
+        </div>
+
+        <div class="p-6 modal-body">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="text-center">
+              <div id="modalProgress" class="text-2xl font-bold text-cyan-400">0%</div>
+              <div class="text-white/60 text-sm">Progress</div>
+            </div>
+            <div class="text-center">
+              <div id="modalAvgScore" class="text-2xl font-bold text-green-400">0%</div>
+              <div class="text-white/60 text-sm">Avg Score</div>
+            </div>
+            <div class="text-center">
+              <div id="modalStreak" class="text-2xl font-bold text-orange-400">0</div>
+              <div class="text-white/60 text-sm">Streak</div>
+            </div>
+            <div class="text-center">
+              <div id="modalTimeSpent" class="text-2xl font-bold text-purple-400">0h</div>
+              <div class="text-white/60 text-sm">Time Spent</div>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="text-white font-semibold mb-3">Areas of Concern</h4>
+              <div id="modalStruggling" class="space-y-2"></div>
+            </div>
+
+            <div>
+              <h4 class="text-white font-semibold mb-3">Strengths</h4>
+              <div id="modalStrengths" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 border-t border-white/20 flex gap-3">
+          <button class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"><i data-lucide="message-circle" class="h-4 w-4"></i> Send Message</button>
+          <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"><i data-lucide="target" class="h-4 w-4"></i> Create Action Plan</button>
+          <button class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"><i data-lucide="bar-chart-3" class="h-4 w-4"></i> View Full Analytics</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Data + Logic -->
+  <script>
+    // Mock teacher data (copied from React source)
+    const teacherData = {
+      name: "Sayantani Saha",
+      title: "Senior Frontend Instructor",
+      email: "saha.sayantani@skillbuddy.com",
+      avatar: "",
+      totalStudents: 156,
+      activeCourses: 4,
+      completedCourses: 12,
+      avgRating: 4.8
+    };
+
+    const classes = [
+      { id: 'react-fundamentals', name: 'React Fundamentals', students: 45, progress: 68, completion: 28, avgScore: 87, status: 'active' },
+      { id: 'advanced-react', name: 'Advanced React Patterns', students: 32, progress: 45, completion: 12, avgScore: 92, status: 'active' },
+      { id: 'react-hooks', name: 'React Hooks Deep Dive', students: 38, progress: 89, completion: 34, avgScore: 85, status: 'active' },
+      { id: 'javascript-es6', name: 'JavaScript ES6+', students: 41, progress: 95, completion: 39, avgScore: 91, status: 'completed' }
+    ];
+
+    const students = [
+      { id: 1, name: "Nityananda Dewan", email: "nityananda@gmail.com", avatar: "", progress: 85, lastActive: "2 hours ago", streak: 12, avgScore: 92, timeSpent: 47, status: "active", strugglingTopics: ["State Management", "API Integration"], strengths: ["React Hooks", "Component Design"] },
+      { id: 2, name: "Dukhit Mandi", email: "dukhit.mandi@gmail.com", avatar: "", progress: 92, lastActive: "1 hour ago", streak: 8, avgScore: 96, timeSpent: 52, status: "active", strugglingTopics: ["Advanced Patterns"], strengths: ["JavaScript ES6", "React Fundamentals"] },
+      { id: 3, name: "Mossiyar Rahaman", email: "mossiyar@email.com", avatar: "", progress: 67, lastActive: "5 hours ago", streak: 3, avgScore: 78, timeSpent: 34, status: "at-risk", strugglingTopics: ["React Hooks","State Management","Testing"], strengths: ["HTML/CSS","Basic JavaScript"] },
+      { id: 4, name: "Shaine Parvin", email: "shaineparvin@gmail.com", avatar: "", progress: 78, lastActive: "3 hours ago", streak: 15, avgScore: 89, timeSpent: 41, status: "active", strugglingTopics: ["Performance Optimization"], strengths: ["Component Lifecycle","Props & State"] },
+      { id: 5, name: "Sourav Chowdhury", email: "sourav.chowdhury@gmail.com", avatar: "", progress: 45, lastActive: "2 days ago", streak: 0, avgScore: 65, timeSpent: 28, status: "inactive", strugglingTopics: ["React Fundamentals","JSX","Component Structure"], strengths: ["HTML","CSS Basics"] }
+    ];
+
+    const classProgressData = [
+      { week: 'Week 1', completed: 12, enrolled: 45 },
+      { week: 'Week 2', completed: 18, enrolled: 45 },
+      { week: 'Week 3', completed: 25, enrolled: 45 },
+      { week: 'Week 4', completed: 28, enrolled: 45 }
+    ];
+
+    const engagementData = [
+      { day: 'Mon', active: 38, total: 45 },
+      { day: 'Tue', active: 42, total: 45 },
+      { day: 'Wed', active: 35, total: 45 },
+      { day: 'Thu', active: 40, total: 45 },
+      { day: 'Fri', active: 33, total: 45 },
+      { day: 'Sat', active: 28, total: 45 },
+      { day: 'Sun', active: 25, total: 45 }
+    ];
+
+    const difficultyAnalysis = [
+      { topic: 'React Hooks', struggling: 15, mastered: 25, percentage: 33 },
+      { topic: 'State Management', struggling: 22, mastered: 18, percentage: 49 },
+      { topic: 'API Integration', struggling: 18, mastered: 20, percentage: 40 },
+      { topic: 'Component Lifecycle', struggling: 8, mastered: 32, percentage: 18 },
+      { topic: 'JSX & Props', struggling: 5, mastered: 38, percentage: 11 }
+    ];
+
+    const recentActivity = [
+      { id: 1, type: 'submission', student: 'Nityananda Dewan', content: 'Submitted React Hooks assignment', time: '30 minutes ago' },
+      { id: 2, type: 'question', student: 'Dukhit Mandi', content: 'Asked about useEffect cleanup', time: '1 hour ago' },
+      { id: 3, type: 'completion', student: 'Mossiyar Rahaman', content: 'Completed Module 4: Advanced Patterns', time: '2 hours ago' },
+      { id: 4, type: 'alert', student: 'Shaine Parvin', content: 'Has been inactive for 2 days', time: '2 hours ago' },
+      { id: 5, type: 'achievement', student: 'Sourav Chowdhury', content: 'Achieved 15-day learning streak', time: '3 hours ago' }
+    ];
+
+    // State
+    let state = {
+      activeTab: 'overview',
+      selectedClass: classes[0].id,
+      selectedStudent: null,
+      sortBy: 'progress',
+      query: ''
+    };
+
+    // Helpers
+    function qs(sel) { return document.querySelector(sel); }
+    function qsa(sel) { return Array.from(document.querySelectorAll(sel)); }
+
+    // Render functions
+    function renderHeader() {
+      qs('#teacherAvatar').src = teacherData.avatar;
+      qs('#teacherName').textContent = teacherData.name;
+      qs('#teacherTitle').textContent = teacherData.title;
+
+      const select = qs('#classSelect');
+      select.innerHTML = classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      select.value = state.selectedClass;
+    }
+
+    function renderMetrics() {
+      qs('#totalStudents').textContent = teacherData.totalStudents;
+      qs('#activeCourses').textContent = teacherData.activeCourses;
+      qs('#avgRating').textContent = teacherData.avgRating;
+      qs('#completedCourses').textContent = teacherData.completedCourses;
+    }
+
+    function renderActiveClasses() {
+      const container = qs('#activeClassesContainer');
+      const active = classes.filter(c => c.status === 'active');
+      container.innerHTML = active.map(cls => `
+        <div class="bg-white/5 rounded-lg p-4 card-border hover:bg-white/10 transition-colors cursor-pointer">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-white font-semibold">${cls.name}</h4>
+            <button class="text-white/60 hover:text-white"><i data-lucide="more-vertical" class="h-4 w-4"></i></button>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <div class="text-lg font-bold text-cyan-400">${cls.students}</div>
+              <div class="text-white/60 text-xs">Students</div>
+            </div>
+            <div>
+              <div class="text-lg font-bold text-green-400">${cls.avgScore}%</div>
+              <div class="text-white/60 text-xs">Avg Score</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-white/70 text-sm">Progress</span>
+              <span class="text-white text-sm">${cls.progress}%</span>
+            </div>
+            <div class="w-full bg-white/20 rounded-full h-2">
+              <div class="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full" style="width:${cls.progress}%"></div>
+            </div>
+          </div>
+          <div class="text-white/60 text-xs">${cls.completion} students completed</div>
+        </div>
+      `).join('');
+      replaceIcons();
+    }
+
+    function renderRecentActivity() {
+      const container = qs('#recentActivityContainer');
+      container.innerHTML = recentActivity.map(activity => {
+        const bg = activity.type === 'submission' ? 'bg-green-500/20' : activity.type === 'question' ? 'bg-blue-500/20' : activity.type === 'completion' ? 'bg-purple-500/20' : activity.type === 'alert' ? 'bg-red-500/20' : 'bg-yellow-500/20';
+        const icon = activity.type === 'submission' ? 'check-circle' : activity.type === 'question' ? 'message-circle' : activity.type === 'completion' ? 'award' : activity.type === 'alert' ? 'alert-triangle' : 'star';
+        return `
+          <div class="flex items-center gap-4 p-3 bg-white/5 rounded-lg card-border">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center ${bg}">
+              <i data-lucide="${icon}" class="h-5 w-5 text-${activity.type === 'submission' ? 'green' : activity.type === 'question' ? 'blue' : activity.type === 'completion' ? 'purple' : activity.type === 'alert' ? 'red' : 'yellow'}-400"></i>
+            </div>
+            <div class="flex-1">
+              <div class="text-white font-medium">${activity.student}</div>
+              <div class="text-white/70 text-sm">${activity.content}</div>
+            </div>
+            <div class="text-white/50 text-sm">${activity.time}</div>
+          </div>
+        `;
+      }).join('');
+      replaceIcons();
+    }
+
+    // Charts
+    let classProgressChart = null;
+    let engagementChart = null;
+    let weeklyEngagementChart = null;
+
+    function renderCharts() {
+      // Class Progress (area chart equivalent)
+      const cpCtx = qs('#classProgressChart').getContext('2d');
+      if (classProgressChart) classProgressChart.destroy();
+      classProgressChart = new Chart(cpCtx, {
+        type: 'line',
+        data: {
+          labels: classProgressData.map(d => d.week),
+          datasets: [{
+            label: 'Completed',
+            data: classProgressData.map(d => d.completed),
+            fill: true,
+            borderColor: '#10B981',
+            backgroundColor: 'rgba(16,185,129,0.18)',
+            tension: 0.4,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#9CA3AF' } },
+            y: { ticks: { color: '#9CA3AF' } }
+          },
+          plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' } }
+        }
+      });
+
+      // Engagement bar chart
+      const egCtx = qs('#engagementChart').getContext('2d');
+      if (engagementChart) engagementChart.destroy();
+      engagementChart = new Chart(egCtx, {
+        type: 'bar',
+        data: {
+          labels: engagementData.map(d => d.day),
+          datasets: [{ label: 'Active', data: engagementData.map(d => d.active), backgroundColor: '#06B6D4' }]
+        },
+        options: { maintainAspectRatio: false, scales: { x: { ticks: { color: '#9CA3AF' } }, y: { ticks: { color: '#9CA3AF' } } }, plugins: { legend: { display: false } } }
+      });
+
+      // Weekly engagement line for analytics tab
+      const weCtx = qs('#weeklyEngagementChart').getContext('2d');
+      if (weeklyEngagementChart) weeklyEngagementChart.destroy();
+      weeklyEngagementChart = new Chart(weCtx, {
+        type: 'line',
+        data: {
+          labels: engagementData.map(d => d.day),
+          datasets: [
+            { label: 'Active', data: engagementData.map(d => d.active), borderColor: '#06B6D4', tension: 0.4, pointRadius: 3, fill: false },
+            { label: 'Total', data: engagementData.map(d => d.total), borderColor: '#6B7280', borderDash: [5,5], tension: 0.4, pointRadius: 0, fill: false }
+          ]
+        },
+        options: { maintainAspectRatio: false, scales: { x: { ticks: { color: '#9CA3AF' } }, y: { ticks: { color: '#9CA3AF' } } }, plugins: { tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' } } }
+      });
+    }
+
+    // STUDENTS list render
+    function renderStudentStats() {
+      qs('#activeCount').textContent = students.filter(s => s.status === 'active').length;
+      qs('#atRiskCount').textContent = students.filter(s => s.status === 'at-risk').length;
+      qs('#inactiveCount').textContent = students.filter(s => s.status === 'inactive').length;
+      const avg = Math.round(students.reduce((acc,s)=>acc+s.avgScore,0)/students.length);
+      qs('#classAverage').textContent = avg + '%';
+    }
+
+    function renderStudentsList() {
+      let filtered = students.filter(s => (s.name + s.email).toLowerCase().includes(state.query.toLowerCase()));
+      if (state.sortBy === 'progress') filtered.sort((a,b)=>b.progress-a.progress);
+      if (state.sortBy === 'score') filtered.sort((a,b)=>b.avgScore-b.avgScore?b.avgScore-a.avgScore:0);
+      if (state.sortBy === 'name') filtered.sort((a,b)=>a.name.localeCompare(b.name));
+
+      const container = qs('#studentsList');
+      container.innerHTML = filtered.map(student => `
+        <div class="bg-white/5 rounded-lg p-4 card-border hover:bg-white/10 transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <img src="${student.avatar}" alt="${student.name}" class="w-12 h-12 rounded-full" />
+              <div>
+                <h4 class="text-white font-semibold">${student.name}</h4>
+                <p class="text-white/60 text-sm">${student.email}</p>
+                <div class="flex items-center gap-4 mt-1">
+                  <span class="px-2 py-1 rounded-full text-xs ${student.status === 'active' ? 'bg-green-500/20 text-green-400' : student.status === 'at-risk' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'}">${student.status}</span>
+                  <span class="text-white/50 text-xs">Last active: ${student.lastActive}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+              <div class="text-center">
+                <div class="text-lg font-bold text-white">${student.progress}%</div>
+                <div class="text-white/60 text-xs">Progress</div>
+              </div>
+              <div class="text-center">
+                <div class="text-lg font-bold text-cyan-400">${student.avgScore}%</div>
+                <div class="text-white/60 text-xs">Avg Score</div>
+              </div>
+              <div class="text-center">
+                <div class="flex items-center gap-1">
+                  <i data-lucide="flame" class="h-4 w-4 text-orange-400"></i>
+                  <span class="text-lg font-bold text-orange-400">${student.streak}</span>
+                </div>
+                <div class="text-white/60 text-xs">Streak</div>
+              </div>
+              <div class="text-center">
+                <div class="text-lg font-bold text-purple-400">${student.timeSpent}h</div>
+                <div class="text-white/60 text-xs">Time Spent</div>
+              </div>
+
+              <button data-id="${student.id}" class="view-details text-cyan-400 hover:text-cyan-300 text-sm font-medium">View Details</button>
+            </div>
+          </div>
+
+          ${student.strugglingTopics.length > 0 ? `
+            <div class="mt-4 pt-4 border-t border-white/20">
+              <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                  <h5 class="text-white/70 text-sm mb-2">Struggling with:</h5>
+                  <div class="flex flex-wrap gap-1">
+                    ${student.strugglingTopics.map(t => `<span class="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">${t}</span>`).join('')}
+                  </div>
+                </div>
+                <div>
+                  <h5 class="text-white/70 text-sm mb-2">Strengths:</h5>
+                  <div class="flex flex-wrap gap-1">
+                    ${student.strengths.map(s => `<span class="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs">${s}</span>`).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+
+      // attach view details listeners
+      qsa('.view-details').forEach(btn => btn.addEventListener('click', (e) => {
+        const id = Number(e.currentTarget.getAttribute('data-id'));
+        openStudentModal(id);
+      }));
+
+      replaceIcons();
+    }
+
+    // Analytics: Difficulty and Performance distribution
+    function renderDifficulty() {
+      const container = qs('#difficultyList');
+      container.innerHTML = difficultyAnalysis.map(topic => `
+        <div class="bg-white/5 rounded-lg p-4 card-border">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-white font-medium">${topic.topic}</h4>
+            <span class="px-3 py-1 rounded-full text-sm ${topic.percentage > 40 ? 'bg-red-500/20 text-red-400' : topic.percentage > 25 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}">${topic.percentage}% struggling</span>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mb-3">
+            <div class="text-center"><div class="text-lg font-bold text-red-400">${topic.struggling}</div><div class="text-white/60 text-xs">Struggling</div></div>
+            <div class="text-center"><div class="text-lg font-bold text-green-400">${topic.mastered}</div><div class="text-white/60 text-xs">Mastered</div></div>
+            <div class="text-center"><div class="text-lg font-bold text-blue-400">${45 - topic.struggling - topic.mastered}</div><div class="text-white/60 text-xs">In Progress</div></div>
+          </div>
+          <div class="w-full bg-white/20 rounded-full h-2">
+            <div class="flex h-2 rounded-full overflow-hidden">
+              <div style="width:${(topic.struggling/45)*100}%" class="bg-red-400"></div>
+              <div style="width:${((45-topic.struggling-topic.mastered)/45)*100}%" class="bg-yellow-400"></div>
+              <div style="width:${(topic.mastered/45)*100}%" class="bg-green-400"></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPerformanceDistribution() {
+      const container = qs('#performanceDistribution');
+      const excellent = students.filter(s => s.avgScore >= 90).length;
+      const good = students.filter(s => s.avgScore >= 80 && s.avgScore < 90).length;
+      const avg = students.filter(s => s.avgScore >= 70 && s.avgScore < 80).length;
+      const below = students.filter(s => s.avgScore < 70).length;
+      container.innerHTML = `
+        <div class="flex items-center justify-between"><span class="text-white/70">Excellent (90-100%)</span><span class="text-green-400 font-semibold">${excellent} students</span></div>
+        <div class="w-full bg-white/20 rounded-full h-2"><div class="bg-green-400 h-2 rounded-full" style="width:${(excellent/students.length)*100}%"></div></div>
+
+        <div class="flex items-center justify-between mt-4"><span class="text-white/70">Good (80-89%)</span><span class="text-blue-400 font-semibold">${good} students</span></div>
+        <div class="w-full bg-white/20 rounded-full h-2"><div class="bg-blue-400 h-2 rounded-full" style="width:${(good/students.length)*100}%"></div></div>
+
+        <div class="flex items-center justify-between mt-4"><span class="text-white/70">Average (70-79%)</span><span class="text-yellow-400 font-semibold">${avg} students</span></div>
+        <div class="w-full bg-white/20 rounded-full h-2"><div class="bg-yellow-400 h-2 rounded-full" style="width:${(avg/students.length)*100}%"></div></div>
+
+        <div class="flex items-center justify-between mt-4"><span class="text-white/70">Below Average (<70%)</span><span class="text-red-400 font-semibold">${below} students</span></div>
+        <div class="w-full bg-white/20 rounded-full h-2"><div class="bg-red-400 h-2 rounded-full" style="width:${(below/students.length)*100}%"></div></div>
+      `;
+    }
+
+    // Modal
+    function openStudentModal(id) {
+      const s = students.find(x => x.id === id);
+      if (!s) return;
+      state.selectedStudent = s;
+      qs('#modalAvatar').src = s.avatar;
+      qs('#modalName').textContent = s.name;
+      qs('#modalEmail').textContent = s.email;
+      qs('#modalProgress').textContent = s.progress + '%';
+      qs('#modalAvgScore').textContent = s.avgScore + '%';
+      qs('#modalStreak').textContent = s.streak;
+      qs('#modalTimeSpent').textContent = s.timeSpent + 'h';
+      qs('#modalStatus').innerHTML = `<span class="px-3 py-1 rounded-full text-sm ${s.status === 'active' ? 'bg-green-500/20 text-green-400' : s.status === 'at-risk' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'}">${s.status}</span>`;
+
+      qs('#modalStruggling').innerHTML = s.strugglingTopics.map(t => `<div class="bg-red-500/20 rounded-lg p-3 border border-red-400/30"><span class="text-red-400 text-sm">${t}</span></div>`).join('');
+      qs('#modalStrengths').innerHTML = s.strengths.map(t => `<div class="bg-green-500/20 rounded-lg p-3 border border-green-400/30"><span class="text-green-400 text-sm">${t}</span></div>`).join('');
+
+      qs('#studentModal').classList.remove('hidden');
+      replaceIcons();
+    }
+    function closeStudentModal() { qs('#studentModal').classList.add('hidden'); state.selectedStudent = null; }
+
+    // Tabs
+    function switchTab(tab) {
+      state.activeTab = tab;
+      qsa('main section').forEach(sec => sec.classList.add('hidden'));
+      qs(`#${tab}`).classList.remove('hidden');
+      qsa('.tab-btn').forEach(b => b.classList.remove('text-cyan-400','border-cyan-400'));
+      const activeBtn = qsa(`.tab-btn[data-tab='${tab}']`)[0];
+      if (activeBtn) { activeBtn.classList.add('text-cyan-400','border-cyan-400'); }
+    }
+
+    // Icon replacer helper (handles different lucide versions)
+    function replaceIcons() {
+      if (window.lucide) {
+        if (typeof lucide.createIcons === 'function') {
+          try { lucide.createIcons(); } catch(e){ /* ignore */ }
+        } else if (typeof lucide.replace === 'function') {
+          try { lucide.replace(); } catch(e){ }
+        }
+      }
+    }
+
+    // Wire up events and initial render
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHeader();
+      renderMetrics();
+      renderActiveClasses();
+      renderRecentActivity();
+      renderCharts();
+
+      renderStudentStats();
+      renderStudentsList();
+
+      renderDifficulty();
+      renderPerformanceDistribution();
+
+      // Tab clicks
+      qsa('.tab-btn').forEach(btn => btn.addEventListener('click', (e) => { switchTab(e.currentTarget.getAttribute('data-tab')); }));
+
+      // class select
+      qs('#classSelect').addEventListener('change', (e) => { state.selectedClass = e.target.value; });
+
+      // student search
+      qs('#studentSearch').addEventListener('input', (e) => { state.query = e.target.value; renderStudentsList(); });
+      qs('#studentSort').addEventListener('change', (e) => { state.sortBy = e.target.value; renderStudentsList(); });
+
+      // modal
+      qs('#closeModalBtn').addEventListener('click', closeStudentModal);
+      qs('#studentModal').addEventListener('click', (e) => { if (e.target === qs('#studentModal')) closeStudentModal(); });
+
+      replaceIcons();
+    });
+
+  </script>
+</body>
+</html>
